@@ -1,15 +1,12 @@
 import argparse
 import dataclasses
-import json
 import os
-import pickle
-import random
+
 import sys
 from dataclasses import dataclass
 from distutils.util import strtobool
 from pathlib import Path
 
-import cv2
 import detectron2
 import numpy as np
 import pandas as pd
