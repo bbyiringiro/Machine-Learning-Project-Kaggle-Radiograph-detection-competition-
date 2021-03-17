@@ -65,8 +65,8 @@ class MyTrainer(DefaultTrainer):
         if output_folder is None:
             output_folder = os.path.join(cfg.OUTPUT_DIR, "inference")
         # return PascalVOCDetectionEvaluator(dataset_name)  # not working
-        # return COCOEvaluator(dataset_name, ("bbox",), False, output_dir=output_folder)
-        return VinbigdataEvaluator(dataset_name, ("bbox",), False, output_dir=output_folder)
+        return COCOEvaluator(dataset_name, ("bbox",), False, output_dir=output_folder)
+        # return VinbigdataEvaluator(dataset_name, ("bbox",), False, output_dir=output_folder)
 
     def build_hooks(self):
         hooks = super(MyTrainer, self).build_hooks()
