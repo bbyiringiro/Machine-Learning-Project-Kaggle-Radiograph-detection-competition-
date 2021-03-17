@@ -148,3 +148,4 @@ mlp_baseline/dataset/data/vin_vig_256x256/
 mlp_detr/dataset/data/vin_vig_256x256/
 *slurm*
 *converted_model.pth*
+temp/
