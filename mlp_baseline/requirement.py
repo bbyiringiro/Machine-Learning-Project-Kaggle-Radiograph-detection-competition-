@@ -1,3 +1,4 @@
-pip install opencv-python
-pip install scipy, pandas
-pip install albumentations
+import os
+os.system('pip install opencv-python')
+os.system('pip install scipy pandas')
+os.system('pip install albumentations')
