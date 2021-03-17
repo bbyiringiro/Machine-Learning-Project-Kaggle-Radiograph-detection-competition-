@@ -17,7 +17,6 @@ import torch
 from detectron2 import model_zoo
 from detectron2.config import get_cfg
 from detectron2.data import DatasetCatalog, MetadataCatalog
-from detectron2.engine import DefaultPredictor, DefaultTrainer, launch
 from detectron2.evaluation import COCOEvaluator
 from detectron2.structures import BoxMode
 from detectron2.utils.logger import setup_logger
@@ -47,15 +46,13 @@ from detectron2.engine import DefaultPredictor, DefaultTrainer, launch
 # from detectron2.evaluation import COCOEvaluator, PascalVOCDetectionEvaluator
 
 
+
 class MyTrainer(DefaultTrainer):
     @classmethod
     def build_train_loader(cls, cfg, sampler=None):
-#         mapper = DetrDatasetMapper(cfg, True)
-        mapper=AlbumentationsMapper(cfg, True)
         return build_detection_train_loader(
-            cfg, mapper= mapper , sampler=sampler
+            cfg, mapper=AlbumentationsMapper(cfg, True), sampler=sampler
         )
-    
 
     @classmethod
     def build_test_loader(cls, cfg, dataset_name):
@@ -189,6 +186,7 @@ def main():
 
 
 
+
     cfg = get_cfg()
     cfg.aug_kwargs = CN(flags.aug_kwargs)  # pass aug_kwargs to cfg
 
@@ -211,7 +209,7 @@ def main():
     cfg.SOLVER.IMS_PER_BATCH = flags.ims_per_batch
     cfg.SOLVER.LR_SCHEDULER_NAME = flags.lr_scheduler_name
     cfg.SOLVER.BASE_LR = flags.base_lr  # pick a good LR
-    cfg.SOLVER.MAX_ITER =100# flags.iter
+    cfg.SOLVER.MAX_ITER = flags.iter
     cfg.SOLVER.CHECKPOINT_PERIOD = 100000  # Small value=Frequent save need a lot of storage.
     cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = flags.roi_batch_size_per_image
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(thing_classes)
@@ -219,8 +217,8 @@ def main():
     # but a few popular unofficial tutorials incorrect uses num_classes+1 here.
 
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
-    # trainer = DefaultTrainer(cfg) 
-    trainer = MyTrainer(cfg) 
+
+    trainer = MyTrainer(cfg)
     trainer.resume_or_load(resume=False)
     trainer.train()
 
