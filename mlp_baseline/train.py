@@ -211,7 +211,7 @@ def main():
     cfg.SOLVER.IMS_PER_BATCH = flags.ims_per_batch
     cfg.SOLVER.LR_SCHEDULER_NAME = flags.lr_scheduler_name
     cfg.SOLVER.BASE_LR = flags.base_lr  # pick a good LR
-    cfg.SOLVER.MAX_ITER = flags.iter
+    cfg.SOLVER.MAX_ITER =100# flags.iter
     cfg.SOLVER.CHECKPOINT_PERIOD = 100000  # Small value=Frequent save need a lot of storage.
     cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = flags.roi_batch_size_per_image
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(thing_classes)
