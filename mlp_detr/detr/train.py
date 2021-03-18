@@ -99,7 +99,7 @@ def main():
         "iter": 80000,
         "ims_per_batch":32,
         # "roi_batch_size_per_image": 512,
-        "eval_period": 10000,
+        "eval_period": 1000,
         "base_lr": 0.0001,
         "num_workers": 4,
         "aug_kwargs": {
@@ -207,7 +207,7 @@ def main():
         cfg.DATASETS.TEST = ("vinbigdata_valid",)
         cfg.TEST.EVAL_PERIOD = flags.eval_period
     cfg.DATALOADER.FILTER_EMPTY_ANNOTATIONS = True
-    cfg.DATALOADER.NUM_WORKERS = 4
+    cfg.DATALOADER.NUM_WORKERS = 8
 
     cfg.OUTPUT_DIR = str(outdir)
 
@@ -220,7 +220,6 @@ def main():
     cfg.MODEL.DETR.NUM_OBJECT_QUERIES = 100
     cfg.MODEL.DETR.GIOU_WEIGHT = 2.0
     cfg.MODEL.DETR.L1_WEIGHT = 5.0
-    cfg.MODEL.DETR.NUM_OBJECT_QUERIES = 100
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(thing_classes)
 
 
@@ -235,14 +234,14 @@ def main():
     cfg.SOLVER.CLIP_GRADIENTS.CLIP_TYPE = 'full_model'
     cfg.SOLVER.CLIP_GRADIENTS.CLIP_VALUE = 0.1
     cfg.SOLVER.CLIP_GRADIENTS.NORM_TYPE = 2.0
-    cfg.SOLVER.CHECKPOINT_PERIOD = 100000  # Small value=Frequent save need a lot of storage.
+    cfg.SOLVER.CHECKPOINT_PERIOD = flags.eval_period  # Small value=Frequent save need a lot of storage.
     # cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = flags.roi_batch_size_per_image
 # NOTE: this config means the number of classes,
 # but a few popular unofficial tutorials incorrect uses num_classes+1 here.
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
     # trainer = DefaultTrainer(cfg) 
     trainer = MyTrainer(cfg) 
-    trainer.resume_or_load(resume=False)
+    trainer.resume_or_load(resume=True)
     trainer.train()
 
 
