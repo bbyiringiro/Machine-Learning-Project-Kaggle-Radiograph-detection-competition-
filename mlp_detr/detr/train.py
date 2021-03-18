@@ -97,10 +97,10 @@ def main():
         "imgdir_name": "vin_vig_256x256",
         "split_mode": "valid20",
         "iter": 80000,
-        "roi_batch_size_per_image": 512,
+        "ims_per_batch":32,
+        # "roi_batch_size_per_image": 512,
         "eval_period": 10000,
-        "lr_scheduler_name": "WarmupCosineLR",
-        "base_lr": 0.00025,
+        "base_lr": 0.0001,
         "num_workers": 4,
         "aug_kwargs": {
             "HorizontalFlip": {"p": 0.5},
@@ -206,21 +206,37 @@ def main():
     else:
         cfg.DATASETS.TEST = ("vinbigdata_valid",)
         cfg.TEST.EVAL_PERIOD = flags.eval_period
+    cfg.DATALOADER.FILTER_EMPTY_ANNOTATIONS = True
+    cfg.DATALOADER.NUM_WORKERS = 4
 
     cfg.OUTPUT_DIR = str(outdir)
 
-    # cfg.MODEL.WEIGHTS = "../../input/fork-of-vinbigdata-detectron2-train-c4c519/detr/results/v9/model_final.pth"
     cfg.MODEL.WEIGHTS = "converted_model.pth"
+    
+
+
+
     cfg.MODEL.DETR.NUM_CLASSES = len(thing_classes)
     cfg.MODEL.DETR.NUM_OBJECT_QUERIES = 100
+    cfg.MODEL.DETR.GIOU_WEIGHT = 2.0
+    cfg.MODEL.DETR.L1_WEIGHT = 5.0
+    cfg.MODEL.DETR.NUM_OBJECT_QUERIES = 100
+    cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(thing_classes)
+
 
     cfg.SOLVER.IMS_PER_BATCH = flags.ims_per_batch
-    cfg.SOLVER.LR_SCHEDULER_NAME = flags.lr_scheduler_name
-    cfg.SOLVER.BASE_LR = flags.base_lr  # pick a good LR
-    cfg.SOLVER.MAX_ITER =100 # flags.iter
+    cfg.SOLVER.BASE_LR = flags.base_lr  
+    cfg.SOLVER.MAX_ITER = flags.iter
+    cfg.SOLVER.WARMUP_FACTOR = 1.0
+    cfg.SOLVER.WARMUP_ITERS = 10
+    cfg.SOLVER.WEIGHT_DECAY = 0.0001
+    cfg.SOLVER.OPTIMIZER = 'ADAMW'
+    cfg.SOLVER.ACKBONE_MULTIPLIER = 0.1
+    cfg.SOLVER.CLIP_GRADIENTS.CLIP_TYPE = 'full_model'
+    cfg.SOLVER.CLIP_GRADIENTS.CLIP_VALUE = 0.1
+    cfg.SOLVER.CLIP_GRADIENTS.NORM_TYPE = 2.0
     cfg.SOLVER.CHECKPOINT_PERIOD = 100000  # Small value=Frequent save need a lot of storage.
-    cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = flags.roi_batch_size_per_image
-    cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(thing_classes)
+    # cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = flags.roi_batch_size_per_image
 # NOTE: this config means the number of classes,
 # but a few popular unofficial tutorials incorrect uses num_classes+1 here.
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
