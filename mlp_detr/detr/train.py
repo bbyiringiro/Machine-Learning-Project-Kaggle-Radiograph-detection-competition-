@@ -99,6 +99,7 @@ def main():
         "iter": 80000,
         "ims_per_batch":32,
         # "roi_batch_size_per_image": 512,
+        "checkpoint_interval":1000,
         "eval_period": 1000,
         "base_lr": 0.0001,
         "num_workers": 4,
@@ -234,7 +235,7 @@ def main():
     cfg.SOLVER.CLIP_GRADIENTS.CLIP_TYPE = 'full_model'
     cfg.SOLVER.CLIP_GRADIENTS.CLIP_VALUE = 0.1
     cfg.SOLVER.CLIP_GRADIENTS.NORM_TYPE = 2.0
-    cfg.SOLVER.CHECKPOINT_PERIOD = flags.eval_period  # Small value=Frequent save need a lot of storage.
+    cfg.SOLVER.CHECKPOINT_PERIOD = flags.checkpoint_interval  # Small value=Frequent save need a lot of storage.
     # cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = flags.roi_batch_size_per_image
 # NOTE: this config means the number of classes,
 # but a few popular unofficial tutorials incorrect uses num_classes+1 here.
