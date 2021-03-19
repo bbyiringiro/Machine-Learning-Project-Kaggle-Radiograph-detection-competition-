@@ -21,7 +21,8 @@ class Flags:
     lr_scheduler_name: str = "WarmupMultiStepLR"  # WarmupMultiStepLR (default) or WarmupCosineLR
     base_lr: float = 0.00025
     roi_batch_size_per_image: int = 512
-    eval_period: int = 100
+    eval_period: int = 1000
+    checkpoint_interval: int = 1000
     aug_kwargs: Dict = field(default_factory=lambda: {})
 
     def update(self, param_dict: Dict) -> "Flags":

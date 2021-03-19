@@ -17,7 +17,7 @@ import torch
 from detectron2 import model_zoo
 from detectron2.config import get_cfg
 from detectron2.data import DatasetCatalog, MetadataCatalog
-from detectron2.evaluation import COCOEvaluator
+from detectron2.evaluation import COCOEvaluator, PascalVOCDetectionEvaluator
 from detectron2.structures import BoxMode
 from detectron2.utils.logger import setup_logger
 from detectron2.utils.visualizer import Visualizer
@@ -25,7 +25,7 @@ from tqdm import tqdm
 
 
 
-from detectron2.config.config import CfgNode as CN
+
 
 
 import os
@@ -42,8 +42,6 @@ from custom.loss_hook import LossEvalHook
 from custom.mapper import MyMapper, AlbumentationsMapper
 from detectron2.engine import DefaultPredictor, DefaultTrainer, launch
 
-
-# from detectron2.evaluation import COCOEvaluator, PascalVOCDetectionEvaluator
 
 
 
@@ -65,8 +63,8 @@ class MyTrainer(DefaultTrainer):
         if output_folder is None:
             output_folder = os.path.join(cfg.OUTPUT_DIR, "inference")
         # return PascalVOCDetectionEvaluator(dataset_name)  # not working
-        return COCOEvaluator(dataset_name, ("bbox",), False, output_dir=output_folder)
-        # return VinbigdataEvaluator(dataset_name, ("bbox",), False, output_dir=output_folder)
+        # return COCOEvaluator(dataset_name, ("bbox",), False, output_dir=output_folder)
+        return VinbigdataEvaluator(dataset_name, ("bbox",), False, output_dir=output_folder)
 
     def build_hooks(self):
         hooks = super(MyTrainer, self).build_hooks()
@@ -83,7 +81,7 @@ class MyTrainer(DefaultTrainer):
 
 
 
-def main():
+def main(args):
     setup_logger()
 
     flags_dict = {
@@ -95,6 +93,7 @@ def main():
         "roi_batch_size_per_image": 512,
         "eval_period": 10000,
         "lr_scheduler_name": "WarmupCosineLR",
+        "checkpoint_interval":1000,
         "base_lr": 0.00025,
         "num_workers": 4,
         "aug_kwargs": {
@@ -210,7 +209,7 @@ def main():
     cfg.SOLVER.LR_SCHEDULER_NAME = flags.lr_scheduler_name
     cfg.SOLVER.BASE_LR = flags.base_lr  # pick a good LR
     cfg.SOLVER.MAX_ITER = flags.iter
-    cfg.SOLVER.CHECKPOINT_PERIOD = 100000  # Small value=Frequent save need a lot of storage.
+    cfg.SOLVER.CHECKPOINT_PERIOD = flags.checkpoint_interval  # Small value=Frequent save need a lot of storage.
     cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = flags.roi_batch_size_per_image
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(thing_classes)
     # NOTE: this config means the number of classes,
@@ -220,8 +219,16 @@ def main():
 
     trainer = MyTrainer(cfg)
     trainer.resume_or_load(resume=False)
-    trainer.train()
+    return trainer.train()
 
 
 if __name__ == "__main__":
-    main()
+    launch(
+        main,
+        8, #args.num_gpus,
+        num_machines=1,
+        machine_rank=0,
+        # dist_url=args.dist_url,
+        args=(),
+    )
+    
