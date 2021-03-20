@@ -77,6 +77,9 @@ class DeformableDETR(nn.Module):
         Args:
             - samples : (tensor, mask) batch of images.
         """
+
+        import sys
+        sys.exit()
         if not isinstance(samples, NestedTensor):
             samples = nested_tensor_from_tensor_list(samples)
         features, poses = self.backbone(samples) # set of image features + positional encoding
