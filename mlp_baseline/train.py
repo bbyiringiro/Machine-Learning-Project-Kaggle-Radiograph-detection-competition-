@@ -81,7 +81,7 @@ class MyTrainer(DefaultTrainer):
 
 
 
-def main(args):
+def main():
     setup_logger()
 
     flags_dict = {
@@ -223,12 +223,5 @@ def main(args):
 
 
 if __name__ == "__main__":
-    launch(
-        main,
-        8, #args.num_gpus,
-        num_machines=1,
-        machine_rank=0,
-        # dist_url=args.dist_url,
-        args=(),
-    )
+    main()
     
