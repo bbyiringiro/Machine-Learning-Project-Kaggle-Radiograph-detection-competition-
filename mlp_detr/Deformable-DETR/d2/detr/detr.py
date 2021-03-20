@@ -94,7 +94,11 @@ class Detr(nn.Module):
 
         N_steps = hidden_dim // 2
         d2_backbone = MaskedBackbone(cfg)
-        backbone = Joiner(d2_backbone, PositionEmbeddingSine(N_steps, normalize=True))
+
+        hidden_dim = 256
+        pos_enc = PositionEmbeddingSine(hidden_dim // 2, normalize=True)
+        
+        backbone = Joiner(d2_backbone, PositionEmbeddingSine(N_steps, normalize=True), pos_enc)
         backbone.num_channels = d2_backbone.num_channels
 
         transformer = Transformer(
