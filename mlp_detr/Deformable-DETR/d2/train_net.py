@@ -46,7 +46,7 @@ class Trainer(DefaultTrainer):
     def run_step(self):
         assert self.model.training, "[Trainer] model was changed to eval mode!"
         start = time.perf_counter()
-        data = next(self._data_loader_iter)
+        data = next(self._trainer._data_loader_iter)
         data_time = time.perf_counter() - start
 
         loss_dict = self.model(data)
