@@ -221,19 +221,7 @@ class AlbumentationsMapper:
 
 
 
-        # print(len(dataset_dict['annotations']))
-        ########## Cutmix and mix up #####
-        if self.use_more_aug and self.is_train:
-            if self.use_cutmmix:
-                res_dict, image = load_cutmix_image_and_boxes(dataset_dict, image, self.all_dicts)
-                dataset_dict = res_dict
-                instances = utils.annotations_to_instances(dataset_dict['annotations'], image_shape)
-                dataset_dict["instances"] = utils.filter_empty_instances(instances)
-            
-            if self.use_mixup:
-                res_dict, image= mixup_image_and_boxes(dataset_dict, image, self.all_dicts)
-                dataset_dict = res_dict
-                ########
+        
                 
 
 
@@ -256,6 +244,20 @@ class AlbumentationsMapper:
             d["bbox"] = transformed["bboxes"][i]
             annos.append(d)
         dataset_dict.pop("annotations", None)  # Remove unnecessary field.
+
+        # print(len(dataset_dict['annotations']))
+        ########## Cutmix and mix up #####
+        if self.use_more_aug and self.is_train:
+            if self.use_cutmmix:
+                res_dict, image = load_cutmix_image_and_boxes(dataset_dict, image, self.all_dicts)
+                dataset_dict = res_dict
+                instances = utils.annotations_to_instances(dataset_dict['annotations'], image_shape)
+                dataset_dict["instances"] = utils.filter_empty_instances(instances)
+            
+            if self.use_mixup:
+                res_dict, image= mixup_image_and_boxes(dataset_dict, image, self.all_dicts)
+                dataset_dict = res_dict
+                ########
 
         # # if not self.is_train:
         # #     # USER: Modify this if you want to keep them for some reason.
