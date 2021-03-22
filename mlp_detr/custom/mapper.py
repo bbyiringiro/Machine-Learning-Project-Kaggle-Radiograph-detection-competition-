@@ -179,7 +179,7 @@ def all_dicts():
 
 class AlbumentationsMapper:
     """Mapper which uses `albumentations` augmentations"""
-    def __init__(self, cfg, is_train: bool = True, use_more_aug=False, use_cutmix = False, use_mixup=False):
+    def __init__(self, cfg, is_train: bool = True, use_more_aug=False, cutmix_prob = 0.0, mixup_prob=0.0):
         aug_kwargs = cfg.aug_kwargs
         aug_list = [
         ]
@@ -195,14 +195,8 @@ class AlbumentationsMapper:
         if use_more_aug:
             self.use_more_aug = True
             self.all_dicts = all_dicts()
-            if use_cutmix:
-                self.use_cutmmix = True
-            else:
-                self.use_cutmmix = False
-            if use_mixup:
-                self.use_mixup = True
-            else:
-                self.use_mixup = False
+            self.cutmix_prob = cutmix_prob
+            self.mixup_prob = mixup_prob
 
         else:
             self.use_more_aug = False
@@ -218,12 +212,6 @@ class AlbumentationsMapper:
         # aug_input = T.AugInput(image)
         # transforms = self.augmentations(aug_input)
         # image = aug_input.image
-
-
-
-        
-                
-
 
         
 
@@ -248,13 +236,13 @@ class AlbumentationsMapper:
         # print(len(dataset_dict['annotations']))
         ########## Cutmix and mix up #####
         if self.use_more_aug and self.is_train:
-            if self.use_cutmmix:
+            if np.random() < self.cutmix_prob:
                 res_dict, image = load_cutmix_image_and_boxes(dataset_dict, image, self.all_dicts)
                 dataset_dict = res_dict
                 instances = utils.annotations_to_instances(dataset_dict['annotations'], image_shape)
                 dataset_dict["instances"] = utils.filter_empty_instances(instances)
             
-            if self.use_mixup:
+            if np.random() < self.mixup_prob:
                 res_dict, image= mixup_image_and_boxes(dataset_dict, image, self.all_dicts)
                 dataset_dict = res_dict
                 ########
