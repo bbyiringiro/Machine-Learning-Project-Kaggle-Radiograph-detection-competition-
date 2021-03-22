@@ -91,7 +91,7 @@ def main():
         "outdir": "results/v9", 
         "imgdir_name": "vin_vig_256x256",
         "split_mode": "valid20",
-        "iter": 80000,
+        "iter": 10000,
         "roi_batch_size_per_image": 512,
         "eval_period": 10000,
         "lr_scheduler_name": "WarmupCosineLR",
