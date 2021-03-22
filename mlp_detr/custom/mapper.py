@@ -23,7 +23,6 @@ def mixup_image_and_boxes(one_dict,img1, all_dataset_dicts):
         # img1 = cv2.imread(one_dict["file_name"], cv2.IMREAD_COLOR).astype(np.float32)
         # img2 = cv2.imread(img2_d["file_name"], cv2.IMREAD_COLOR).astype(np.float32)
         img2 = utils.read_image(img2_d["file_name"], format="BGR")
-        
         mixed_img = ((img1.astype(np.float32)+img2.astype(np.float32))/2)
         mixed_img_dict= img1_d
         mixed_img_dict['annotations']= img1_d['annotations']+img2_d['annotations']
@@ -246,7 +245,7 @@ class AlbumentationsMapper:
                 dataset_dict = res_dict
                 ########
 
-        dataset_dict.pop("annotations", None)  # Remove unnecessary field.
+        #dataset_dict.pop("annotations", None)  # Remove unnecessary field.
 
         # # if not self.is_train:
         # #     # USER: Modify this if you want to keep them for some reason.

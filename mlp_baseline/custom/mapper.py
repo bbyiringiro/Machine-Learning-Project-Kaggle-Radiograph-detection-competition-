@@ -23,7 +23,6 @@ def mixup_image_and_boxes(one_dict,img1, all_dataset_dicts):
         # img1 = cv2.imread(one_dict["file_name"], cv2.IMREAD_COLOR).astype(np.float32)
         # img2 = cv2.imread(img2_d["file_name"], cv2.IMREAD_COLOR).astype(np.float32)
         img2 = utils.read_image(img2_d["file_name"], format="BGR")
-        
         mixed_img = ((img1.astype(np.float32)+img2.astype(np.float32))/2)
         mixed_img_dict= img1_d
         mixed_img_dict['annotations']= img1_d['annotations']+img2_d['annotations']
@@ -231,21 +230,22 @@ class AlbumentationsMapper:
             d = prev_anno[j]
             d["bbox"] = transformed["bboxes"][i]
             annos.append(d)
-        dataset_dict.pop("annotations", None)  # Remove unnecessary field.
+        
 
         # print(len(dataset_dict['annotations']))
         ########## Cutmix and mix up #####
         if self.use_more_aug and self.is_train:
-            if np.random.random() < self.cutmix_prob:
-                res_dict, image = load_cutmix_image_and_boxes(dataset_dict, image, self.all_dicts)
-                dataset_dict = res_dict
-                instances = utils.annotations_to_instances(dataset_dict['annotations'], image_shape)
-                dataset_dict["instances"] = utils.filter_empty_instances(instances)
-            
+     
             if np.random.random() < self.mixup_prob:
                 res_dict, image= mixup_image_and_boxes(dataset_dict, image, self.all_dicts)
                 dataset_dict = res_dict
+
+            if np.random.random() < self.cutmix_prob:
+                res_dict, image = load_cutmix_image_and_boxes(dataset_dict, image, self.all_dicts)
+                dataset_dict = res_dict
                 ########
+
+        #dataset_dict.pop("annotations", None)  # Remove unnecessary field.
 
         # # if not self.is_train:
         # #     # USER: Modify this if you want to keep them for some reason.
@@ -258,3 +258,34 @@ class AlbumentationsMapper:
         dataset_dict["instances"] = utils.filter_empty_instances(instances)
 
         return dataset_dict
+
+
+
+###testing code ####
+if __name__ == "__main__":
+
+    a = AlbumentationsMapper(None, use_more_aug=True)
+    from detectron2.utils.visualizer import Visualizer
+    import matplotlib.pyplot as plt
+    
+
+
+    cols = 1
+    rows = 1
+    fig, ax = plt.subplots(rows, cols, figsize=(18, 18))
+
+
+    for i in range(1):
+        # ax =axes[0]
+        
+        dd = a(a.all_dicts[i])
+        d, img = dd, dd['image']
+        
+        # print(d.keys())
+        # visualizer = Visualizer(img[:, :, ::-1], metadata=None, scale=0.5)
+        # out = visualizer.draw_dataset_dict(d)
+        # # cv2_imshow(out.get_image()[:, :, ::-1])
+        # cv2.imwrite(str(outdir / f"vinbigdata{index}.jpg"), out.get_image()[:, :, ::-1])
+        plt.imshow(img[:, :, ::-1])
+        # ax.set_title(f"{anom_ind}: image_id {anomaly_image_ids[index]}")
+    plt.show()
