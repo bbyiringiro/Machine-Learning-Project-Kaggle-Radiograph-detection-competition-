@@ -180,17 +180,17 @@ def all_dicts():
 class AlbumentationsMapper:
     """Mapper which uses `albumentations` augmentations"""
     def __init__(self, cfg, is_train: bool = True, use_more_aug=False, use_cutmix = False, use_mixup=False):
-        # aug_kwargs = cfg.aug_kwargs
-        # aug_list = [
-        # ]
-        # if is_train:
-        #     aug_list.extend([getattr(A, name)(**kwargs) for name, kwargs in aug_kwargs.items()])
-        # self.transform = A.Compose(
-        #     aug_list, bbox_params=A.BboxParams(format="pascal_voc", label_fields=["category_ids"])
-        # )
+        aug_kwargs = cfg.aug_kwargs
+        aug_list = [
+        ]
+        if is_train:
+            aug_list.extend([getattr(A, name)(**kwargs) for name, kwargs in aug_kwargs.items()])
+        self.transform = A.Compose(
+            aug_list, bbox_params=A.BboxParams(format="pascal_voc", label_fields=["category_ids"])
+        )
         self.is_train = is_train
 
-        # mode = "training" if is_train else "inference"
+        mode = "training" if is_train else "inference"
         # print(f"[AlbumentationsMapper] Augmentations used in {mode}: {self.transform}")
         if use_more_aug:
             self.use_more_aug = True
