@@ -57,7 +57,7 @@ class MyTrainer(Trainer):
     def build_train_loader(cls, cfg, sampler=None):
 #         mapper = DetrDatasetMapper(cfg, True)
         
-        mapper=AlbumentationsMapper(cfg, True, use_more_aug=True, use_cutmix = 0.5, use_mixup=0.5)
+        mapper=AlbumentationsMapper(cfg, True, use_more_aug=True, cutmix_prob = 0.5, mixup_prob=0.5)
         return build_detection_train_loader(
             cfg, mapper= mapper , sampler=sampler
         )

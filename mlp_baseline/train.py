@@ -23,6 +23,8 @@ from detectron2.utils.logger import setup_logger
 from detectron2.utils.visualizer import Visualizer
 from tqdm import tqdm
 
+from detectron2.config.config import CfgNode as CN
+
 
 
 
@@ -49,7 +51,7 @@ class MyTrainer(DefaultTrainer):
     @classmethod
     def build_train_loader(cls, cfg, sampler=None):
         return build_detection_train_loader(
-            cfg, mapper=AlbumentationsMapper(cfg, True, use_more_aug=True, use_cutmix = 0.0, use_mixup=0.0), sampler=sampler
+            cfg, mapper=AlbumentationsMapper(cfg, True, use_more_aug=True, cutmix_prob = 0.0, mixup_prob=0.0), sampler=sampler
         )
 
     @classmethod
