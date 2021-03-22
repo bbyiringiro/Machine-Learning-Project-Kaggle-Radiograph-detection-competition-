@@ -16,6 +16,40 @@ import dataclasses
 import cv2
 
 
+def all_dicts():
+    
+
+    flags_dict = {
+            "debug": False,
+            "outdir": "results/v9", 
+            "imgdir_name": "vin_vig_256x256",
+            "split_mode": "valid20",
+           
+        }
+
+    flags = Flags().update(flags_dict)
+
+    # print("flags", flags)
+    debug = flags.debug
+    outdir = Path(flags.outdir)
+    os.makedirs(str(outdir), exist_ok=True)
+
+    flags_dict = dataclasses.asdict(flags)
+    # save_yaml(outdir / "flags.yaml", flags_dict)
+
+    # --- Read data ---
+    inputdir = Path("../dataset/data")
+    imgdir = inputdir / flags.imgdir_name
+
+    # Read in the data CSV files
+    train_df = pd.read_csv(inputdir / "train.csv")
+
+    
+
+
+
+    return get_vinbigdata_dicts(imgdir, train_df, debug=True)
+
 
 def mixup_image_and_boxes(one_dict,img1, all_dataset_dicts):  
         img1_d = one_dict
@@ -67,7 +101,7 @@ def load_cutmix_image_and_boxes(one_dict,img1, all_dataset_dicts,imsize=256):
             padh = y1a - y1b
 
             for j in range(len(img_d['annotations'])):
-                img_d['annotations'][j]['bbox'] = [img_d['annotations'][j]['bbox'][0]+padw, img_d['annotations'][j]['bbox'][1]+padh, img_d['annotations'][j]['bbox'][2]+padw, img_d['annotations'][j]['bbox'][3]+padh]
+                img_d['annotations'][j]['bbox'] = np.clip([img_d['annotations'][j]['bbox'][0]+padw, img_d['annotations'][j]['bbox'][1]+padh, img_d['annotations'][j]['bbox'][2]+padw, img_d['annotations'][j]['bbox'][3]+padh], 2 * s)
             img_dict_result['annotations'] +=img_d['annotations']
 
 
@@ -140,39 +174,7 @@ from dataset.process_data  import get_vinbigdata_dicts
 from configs import thing_classes, Flags
 
 
-def all_dicts():
 
-
-    flags_dict = {
-            "debug": False,
-            "outdir": "results/v9", 
-            "imgdir_name": "vin_vig_256x256",
-            "split_mode": "valid20",
-           
-        }
-
-    flags = Flags().update(flags_dict)
-
-    # print("flags", flags)
-    debug = flags.debug
-    outdir = Path(flags.outdir)
-    os.makedirs(str(outdir), exist_ok=True)
-
-    flags_dict = dataclasses.asdict(flags)
-    # save_yaml(outdir / "flags.yaml", flags_dict)
-
-    # --- Read data ---
-    inputdir = Path("../dataset/data")
-    imgdir = inputdir / flags.imgdir_name
-
-    # Read in the data CSV files
-    train_df = pd.read_csv(inputdir / "train.csv")
-
-    
-
-
-
-    return get_vinbigdata_dicts(imgdir, train_df, debug=True)
 
 
 
@@ -219,6 +221,7 @@ class AlbumentationsMapper:
             if np.random.random() < self.cutmix_prob:
                 res_dict, image = load_cutmix_image_and_boxes(dataset_dict, image, self.all_dicts)
                 dataset_dict = res_dict
+                dataset_dict["annotations"] = dataset_dict["annotations"]
                 ########
         
 

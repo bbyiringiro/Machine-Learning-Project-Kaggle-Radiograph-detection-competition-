@@ -17,18 +17,48 @@ import cv2
 
 
 
+def all_dicts():
+    
+
+    flags_dict = {
+            "debug": False,
+            "outdir": "results/v9", 
+            "imgdir_name": "vin_vig_256x256",
+            "split_mode": "valid20",
+           
+        }
+
+    flags = Flags().update(flags_dict)
+
+    # print("flags", flags)
+    debug = flags.debug
+    outdir = Path(flags.outdir)
+    os.makedirs(str(outdir), exist_ok=True)
+
+    flags_dict = dataclasses.asdict(flags)
+    # save_yaml(outdir / "flags.yaml", flags_dict)
+
+    # --- Read data ---
+    inputdir = Path("dataset/data")
+    imgdir = inputdir / flags.imgdir_name
+
+    # Read in the data CSV files
+    train_df = pd.read_csv(inputdir / "train.csv")
+
+
+
 def mixup_image_and_boxes(one_dict,img1, all_dataset_dicts):  
-        img1_d = one_dict
-        img2_d = all_dataset_dicts[np.random.randint(0, len(all_dataset_dicts) - 1)] 
-        # img1 = cv2.imread(one_dict["file_name"], cv2.IMREAD_COLOR).astype(np.float32)
-        # img2 = cv2.imread(img2_d["file_name"], cv2.IMREAD_COLOR).astype(np.float32)
-        img2 = utils.read_image(img2_d["file_name"], format="BGR")
-        mixed_img = ((img1.astype(np.float32)+img2.astype(np.float32))/2)
-        mixed_img_dict= img1_d
-        mixed_img_dict['annotations']= img1_d['annotations']+img2_d['annotations']
-        
-        return mixed_img_dict, mixed_img
-        # return one_dict, img1
+    img1_d = one_dict
+    img2_d = all_dataset_dicts[np.random.randint(0, len(all_dataset_dicts) - 1)] 
+    # img1 = cv2.imread(one_dict["file_name"], cv2.IMREAD_COLOR).astype(np.float32)
+    # img2 = cv2.imread(img2_d["file_name"], cv2.IMREAD_COLOR).astype(np.float32)
+    img2 = utils.read_image(img2_d["file_name"], format="BGR")
+    mixed_img = ((img1.astype(np.float32)+img2.astype(np.float32))/2)
+    mixed_img_dict= img1_d
+    mixed_img_dict['annotations']= img1_d['annotations']+img2_d['annotations']
+    
+    return mixed_img_dict, mixed_img
+    # return one_dict, img1
 
 
 def load_cutmix_image_and_boxes(one_dict,img1, all_dataset_dicts,imsize=256):
@@ -67,7 +97,7 @@ def load_cutmix_image_and_boxes(one_dict,img1, all_dataset_dicts,imsize=256):
             padh = y1a - y1b
 
             for j in range(len(img_d['annotations'])):
-                img_d['annotations'][j]['bbox'] = [img_d['annotations'][j]['bbox'][0]+padw, img_d['annotations'][j]['bbox'][1]+padh, img_d['annotations'][j]['bbox'][2]+padw, img_d['annotations'][j]['bbox'][3]+padh]
+                img_d['annotations'][j]['bbox'] = np.clip([img_d['annotations'][j]['bbox'][0]+padw, img_d['annotations'][j]['bbox'][1]+padh, img_d['annotations'][j]['bbox'][2]+padw, img_d['annotations'][j]['bbox'][3]+padh], 2 * s)
             img_dict_result['annotations'] +=img_d['annotations']
 
 
@@ -140,39 +170,7 @@ from dataset.process_data  import get_vinbigdata_dicts
 from configs import thing_classes, Flags
 
 
-def all_dicts():
 
-
-    flags_dict = {
-            "debug": False,
-            "outdir": "results/v9", 
-            "imgdir_name": "vin_vig_256x256",
-            "split_mode": "valid20",
-           
-        }
-
-    flags = Flags().update(flags_dict)
-
-    # print("flags", flags)
-    debug = flags.debug
-    outdir = Path(flags.outdir)
-    os.makedirs(str(outdir), exist_ok=True)
-
-    flags_dict = dataclasses.asdict(flags)
-    # save_yaml(outdir / "flags.yaml", flags_dict)
-
-    # --- Read data ---
-    inputdir = Path("dataset/data")
-    imgdir = inputdir / flags.imgdir_name
-
-    # Read in the data CSV files
-    train_df = pd.read_csv(inputdir / "train.csv")
-
-    
-
-
-
-    return get_vinbigdata_dicts(imgdir, train_df, debug=True)
 
 
 
@@ -208,10 +206,19 @@ class AlbumentationsMapper:
         image_shape = image.shape[:2]  # h, w
 
 
-        # aug_input = T.AugInput(image)
-        # transforms = self.augmentations(aug_input)
-        # image = aug_input.image
+       # print(len(dataset_dict['annotations']))
+        ########## Cutmix and mix up #####
+        if self.use_more_aug and self.is_train:
+     
+            if np.random.random() < self.mixup_prob:
+                res_dict, image= mixup_image_and_boxes(dataset_dict, image, self.all_dicts)
+                dataset_dict = res_dict
 
+            if np.random.random() < self.cutmix_prob:
+                res_dict, image = load_cutmix_image_and_boxes(dataset_dict, image, self.all_dicts)
+                dataset_dict = res_dict
+                dataset_dict["annotations"] = dataset_dict["annotations"]
+                ########
         
 
         prev_anno = dataset_dict["annotations"]
@@ -232,18 +239,7 @@ class AlbumentationsMapper:
             annos.append(d)
         
 
-        # print(len(dataset_dict['annotations']))
-        ########## Cutmix and mix up #####
-        if self.use_more_aug and self.is_train:
-     
-            if np.random.random() < self.mixup_prob:
-                res_dict, image= mixup_image_and_boxes(dataset_dict, image, self.all_dicts)
-                dataset_dict = res_dict
-
-            if np.random.random() < self.cutmix_prob:
-                res_dict, image = load_cutmix_image_and_boxes(dataset_dict, image, self.all_dicts)
-                dataset_dict = res_dict
-                ########
+       
 
         #dataset_dict.pop("annotations", None)  # Remove unnecessary field.
 
@@ -289,3 +285,4 @@ if __name__ == "__main__":
         plt.imshow(img[:, :, ::-1])
         # ax.set_title(f"{anom_ind}: image_id {anomaly_image_ids[index]}")
     plt.show()
+
