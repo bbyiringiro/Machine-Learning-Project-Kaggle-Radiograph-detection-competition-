@@ -50,10 +50,14 @@ from d2.detr import add_detr_config
 
 
 class MyTrainer(Trainer):
+    # def __init__(self, cfg, _mydata_dicts):
+    #     super().__init__(cfg)
+    #     self.mydata_dicts = _mydata_dicts
     @classmethod
     def build_train_loader(cls, cfg, sampler=None):
 #         mapper = DetrDatasetMapper(cfg, True)
-        mapper=AlbumentationsMapper(cfg, True)
+        
+        mapper=AlbumentationsMapper(cfg, self.mydata_dicts, True)
         return build_detection_train_loader(
             cfg, mapper= mapper , sampler=sampler
         )
@@ -192,7 +196,7 @@ def main():
 
 
     
-
+    dataset_dicts = get_vinbigdata_dicts(imgdir, train_df, debug=True)
 
     cfg = get_cfg()
 

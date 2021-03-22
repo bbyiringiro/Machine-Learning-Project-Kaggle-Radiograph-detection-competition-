@@ -9,6 +9,8 @@ from detectron2.structures import BoxMode
 from tqdm import tqdm
 
 
+
+
 def get_vinbigdata_dicts(
     imgdir: Path,
     train_df: pd.DataFrame,
@@ -22,6 +24,8 @@ def get_vinbigdata_dicts(
     train_data_type_str = f"_{train_data_type}"
     class14_str = f"_14class{int(use_class14)}"
     cache_path = Path(".") / f"dataset_dicts_cache{train_data_type_str}{class14_str}{debug_str}.pkl"
+    # print(train_df.shape)
+    
     
     
     if not use_cache or not cache_path.exists():
