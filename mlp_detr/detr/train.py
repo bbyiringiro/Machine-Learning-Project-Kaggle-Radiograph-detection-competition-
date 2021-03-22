@@ -57,7 +57,7 @@ class MyTrainer(Trainer):
     def build_train_loader(cls, cfg, sampler=None):
 #         mapper = DetrDatasetMapper(cfg, True)
         
-        mapper=AlbumentationsMapper(cfg, self.mydata_dicts, True)
+        mapper=AlbumentationsMapper(cfg, True, use_more_aug=True)
         return build_detection_train_loader(
             cfg, mapper= mapper , sampler=sampler
         )
