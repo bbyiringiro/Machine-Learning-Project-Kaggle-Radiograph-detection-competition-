@@ -24,7 +24,7 @@ def mixup_image_and_boxes(one_dict,img1, all_dataset_dicts):
         # img2 = cv2.imread(img2_d["file_name"], cv2.IMREAD_COLOR).astype(np.float32)
         img2 = utils.read_image(img2_d["file_name"], format="BGR")
         
-        mixed_img = img2 #(img1+img2)/2
+        mixed_img = ((img1.astype(np.float32)+img2.astype(np.float32))/2)
         mixed_img_dict= img1_d
         mixed_img_dict['annotations']= img1_d['annotations']+img2_d['annotations']
         
@@ -40,7 +40,7 @@ def load_cutmix_image_and_boxes(one_dict,img1, all_dataset_dicts,imsize=256):
         w, h = imsize, imsize
         s = imsize // 2
         xc, yc = [int(np.random.uniform(imsize * 0.25, imsize * 0.75)) for _ in range(2)]  # center x, y
-        indexes = [np.random.randint(0, len(all_dataset_dicts) - 1) for _ in range(3)]
+        indexes = [np.random.randint(0, len(all_dataset_dicts) - 1) for _ in range(4)]
 
         result_image = np.full((imsize, imsize, 3), 1, dtype=np.float32)
         img_dict_result = None
@@ -168,9 +168,6 @@ def all_dicts():
 
     # Read in the data CSV files
     train_df = pd.read_csv(inputdir / "train.csv")
-    # print(train_df)
-    # train = train_df  # alias
-    # sample_submission = pd.read_csv(datadir / 'sample_submission.csv')
 
     
 
@@ -182,27 +179,41 @@ def all_dicts():
 
 class AlbumentationsMapper:
     """Mapper which uses `albumentations` augmentations"""
-    def __init__(self, cfg, is_train: bool = True, use_more_aug=False):
-        aug_kwargs = cfg.aug_kwargs
-        aug_list = [
-        ]
-        if is_train:
-            aug_list.extend([getattr(A, name)(**kwargs) for name, kwargs in aug_kwargs.items()])
-        self.transform = A.Compose(
-            aug_list, bbox_params=A.BboxParams(format="pascal_voc", label_fields=["category_ids"])
-        )
+    def __init__(self, cfg, is_train: bool = True, use_more_aug=False, use_cutmix = False, use_mixup=False):
+        # aug_kwargs = cfg.aug_kwargs
+        # aug_list = [
+        # ]
+        # if is_train:
+        #     aug_list.extend([getattr(A, name)(**kwargs) for name, kwargs in aug_kwargs.items()])
+        # self.transform = A.Compose(
+        #     aug_list, bbox_params=A.BboxParams(format="pascal_voc", label_fields=["category_ids"])
+        # )
         self.is_train = is_train
 
-        mode = "training" if is_train else "inference"
-        print(f"[AlbumentationsMapper] Augmentations used in {mode}: {self.transform}")
+        # mode = "training" if is_train else "inference"
+        # print(f"[AlbumentationsMapper] Augmentations used in {mode}: {self.transform}")
         if use_more_aug:
             self.use_more_aug = True
             self.all_dicts = all_dicts()
+            if use_cutmix:
+                self.use_cutmmix = True
+            else:
+                self.use_cutmmix = False
+            if use_mixup:
+                self.use_mixup = True
+            else:
+                self.use_mixup = False
+
+        else:
+            self.use_more_aug = False
+        
 
 
     def __call__(self, dataset_dict):
         dataset_dict = copy.deepcopy(dataset_dict)  # it will be modified by code below
         image = utils.read_image(dataset_dict["file_name"], format="BGR")
+        image_shape = image.shape[:2]  # h, w
+
 
         # aug_input = T.AugInput(image)
         # transforms = self.augmentations(aug_input)
@@ -210,25 +221,29 @@ class AlbumentationsMapper:
 
 
 
-
+        print(len(dataset_dict['annotations']))
         ########## Cutmix and mix up #####
         if self.use_more_aug and self.is_train:
-        #     # if cutmmix
-            # res_dict, image = load_cutmix_image_and_boxes(dataset_dict, image, self.all_dicts)
-            # dataset_dict = res_dict
+            if self.use_cutmmix:
+                res_dict, image = load_cutmix_image_and_boxes(dataset_dict, image, self.all_dicts)
+                dataset_dict = res_dict
             
-        #     # if mxup
+            if self.use_mixup:
+                res_dict, image= mixup_image_and_boxes(dataset_dict, image, self.all_dicts)
+                dataset_dict = res_dict
+                ########
+                instances = utils.annotations_to_instances(dataset_dict['annotations'], image_shape)
+                dataset_dict["instances"] = utils.filter_empty_instances(instances)
 
-            res_dict, image= mixup_image_and_boxes(dataset_dict, image, self.all_dicts)
-            dataset_dict = res_dict
-        #     print("gotten")
+
+        
 
         prev_anno = dataset_dict["annotations"]
         bboxes = np.array([obj["bbox"] for obj in prev_anno], dtype=np.float32)
         # category_id = np.array([obj["category_id"] for obj in dataset_dict["annotations"]], dtype=np.int64)
         category_id = np.arange(len(dataset_dict["annotations"]))
 
-        ########
+       
 
 
 
@@ -241,17 +256,15 @@ class AlbumentationsMapper:
             annos.append(d)
         dataset_dict.pop("annotations", None)  # Remove unnecessary field.
 
-        # if not self.is_train:
-        #     # USER: Modify this if you want to keep them for some reason.
-        #     dataset_dict.pop("annotations", None)
-        #     dataset_dict.pop("sem_seg_file_name", None)
-        #     return dataset_dict
+        # # if not self.is_train:
+        # #     # USER: Modify this if you want to keep them for some reason.
+        # #     dataset_dict.pop("annotations", None)
+        # #     dataset_dict.pop("sem_seg_file_name", None)
+        # #     return dataset_dict
 
-        image_shape = image.shape[:2]  # h, w
         dataset_dict["image"] = torch.as_tensor(image.transpose(2, 0, 1).astype("float32"))
         instances = utils.annotations_to_instances(annos, image_shape)
         dataset_dict["instances"] = utils.filter_empty_instances(instances)
-
 
         return dataset_dict
 
@@ -260,10 +273,10 @@ class AlbumentationsMapper:
 ###testing code ####
 if __name__ == "__main__":
 
-    a = AlbumentationsMapper(None)
+    a = AlbumentationsMapper(None, use_more_aug=True)
     from detectron2.utils.visualizer import Visualizer
     import matplotlib.pyplot as plt
-    a.test(a.all_dicts[0])
+    
 
 
     cols = 1
@@ -271,10 +284,10 @@ if __name__ == "__main__":
     fig, ax = plt.subplots(rows, cols, figsize=(18, 18))
 
 
-    for _ in range(1):
+    for i in range(1):
         # ax =axes[0]
         
-        dd = a.test(a.all_dicts[0])
+        dd = a(a.all_dicts[i])
         d, img = dd, dd['image']
         
         print(d.keys())
