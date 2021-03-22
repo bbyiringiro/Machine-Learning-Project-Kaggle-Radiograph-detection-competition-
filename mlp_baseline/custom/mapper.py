@@ -163,7 +163,7 @@ def all_dicts():
     # save_yaml(outdir / "flags.yaml", flags_dict)
 
     # --- Read data ---
-    inputdir = Path("../dataset/data")
+    inputdir = Path("dataset/data")
     imgdir = inputdir / flags.imgdir_name
 
     # Read in the data CSV files
