@@ -203,7 +203,7 @@ for index, anom_ind in enumerate(anomaly_inds[:cols * rows]):
     # print(i,anom_ind )
     anom_ind = i
     # d = dataset_dicts[anom_ind]
-    d, img= load_cutmix_image_and_boxes(anom_ind, dataset_dicts)
+    # d, img= load_cutmix_image_and_boxes(anom_ind, dataset_dicts)
     d, img= mixup_image_and_boxes(anom_ind, dataset_dicts)
 
     # img = cv2.imread(d["file_name"])
