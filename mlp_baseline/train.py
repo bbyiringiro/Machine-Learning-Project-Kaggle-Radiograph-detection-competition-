@@ -29,7 +29,7 @@ from detectron2.config.config import CfgNode as CN
 
 
 
-
+import argparse
 import os
 
 from detectron2.data import build_detection_test_loader, build_detection_train_loader
@@ -84,6 +84,9 @@ class MyTrainer(DefaultTrainer):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('dest_results', action="store")
+    
     setup_logger()
 
     flags_dict = {
@@ -104,6 +107,7 @@ def main():
             "RandomBrightnessContrast": {"p": 0.3}
         }
     }
+    flags_dict["outdir"] = "results/v9/"+parser.dest_results
 
     # args = parse()
     print("torch", torch.__version__)
