@@ -172,63 +172,7 @@ def all_dicts():
     # train = train_df  # alias
     # sample_submission = pd.read_csv(datadir / 'sample_submission.csv')
 
-
-
-
-    train_data_type = flags.train_data_type
-    if flags.use_class14:
-        thing_classes.append("No finding")
-
-    #wether to use all data to train
-
-    split_mode = flags.split_mode
-
-    if split_mode == "all_train":
-        DatasetCatalog.register(
-            "vinbigdata_train",
-            lambda: get_vinbigdata_dicts(
-                imgdir, train_df, train_data_type, debug=debug, use_class14=flags.use_class14
-            ),
-        )
-        MetadataCatalog.get("vinbigdata_train").set(thing_classes=thing_classes)
-    elif split_mode == "valid20":
-        # To get number of data...
-        n_dataset = len(
-            get_vinbigdata_dicts(
-                imgdir, train_df, train_data_type, debug=debug, use_class14=flags.use_class14
-            )
-        )
-        n_train = int(n_dataset * 0.8)
-        print("n_dataset", n_dataset, "n_train", n_train)
-        rs = np.random.RandomState(flags.seed)
-        inds = rs.permutation(n_dataset)
-        train_inds, valid_inds = inds[:n_train], inds[n_train:]
-        DatasetCatalog.register(
-            "vinbigdata_train",
-            lambda: get_vinbigdata_dicts(
-                imgdir,
-                train_df,
-                train_data_type,
-                debug=debug,
-                target_indices=train_inds,
-                use_class14=flags.use_class14,
-            ),
-        )
-        MetadataCatalog.get("vinbigdata_train").set(thing_classes=thing_classes)
-        DatasetCatalog.register(
-            "vinbigdata_valid",
-            lambda: get_vinbigdata_dicts(
-                imgdir,
-                train_df,
-                train_data_type,
-                debug=debug,
-                target_indices=valid_inds,
-                use_class14=flags.use_class14,
-            ),
-        )
-        MetadataCatalog.get("vinbigdata_valid").set(thing_classes=thing_classes)
-    else:
-        raise ValueError(f"[ERROR] Unexpected value split_mode={split_mode}")
+    
 
 
 
