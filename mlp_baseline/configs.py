@@ -16,7 +16,7 @@ class Flags:
     use_class14: bool = False
     # Training config
     iter: int = 100000
-    ims_per_batch: int = 5  # images per batch, this corresponds to "total batch size"
+    ims_per_batch: int = 32  # images per batch, this corresponds to "total batch size"
     num_workers: int = 4
     lr_scheduler_name: str = "WarmupMultiStepLR"  # WarmupMultiStepLR (default) or WarmupCosineLR
     base_lr: float = 0.00025
