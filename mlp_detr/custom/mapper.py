@@ -208,10 +208,18 @@ class AlbumentationsMapper:
         image_shape = image.shape[:2]  # h, w
 
 
-        # aug_input = T.AugInput(image)
-        # transforms = self.augmentations(aug_input)
-        # image = aug_input.image
+       # print(len(dataset_dict['annotations']))
+        ########## Cutmix and mix up #####
+        if self.use_more_aug and self.is_train:
+     
+            if np.random.random() < self.mixup_prob:
+                res_dict, image= mixup_image_and_boxes(dataset_dict, image, self.all_dicts)
+                dataset_dict = res_dict
 
+            if np.random.random() < self.cutmix_prob:
+                res_dict, image = load_cutmix_image_and_boxes(dataset_dict, image, self.all_dicts)
+                dataset_dict = res_dict
+                ########
         
 
         prev_anno = dataset_dict["annotations"]
