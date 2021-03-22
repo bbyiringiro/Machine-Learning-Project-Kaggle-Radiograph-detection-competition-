@@ -154,7 +154,7 @@ def all_dicts():
 
     flags = Flags().update(flags_dict)
 
-    print("flags", flags)
+    # print("flags", flags)
     debug = flags.debug
     outdir = Path(flags.outdir)
     os.makedirs(str(outdir), exist_ok=True)
@@ -221,7 +221,7 @@ class AlbumentationsMapper:
 
 
 
-        print(len(dataset_dict['annotations']))
+        # print(len(dataset_dict['annotations']))
         ########## Cutmix and mix up #####
         if self.use_more_aug and self.is_train:
             if self.use_cutmmix:
@@ -290,7 +290,7 @@ if __name__ == "__main__":
         dd = a(a.all_dicts[i])
         d, img = dd, dd['image']
         
-        print(d.keys())
+        # print(d.keys())
         # visualizer = Visualizer(img[:, :, ::-1], metadata=None, scale=0.5)
         # out = visualizer.draw_dataset_dict(d)
         # # cv2_imshow(out.get_image()[:, :, ::-1])
