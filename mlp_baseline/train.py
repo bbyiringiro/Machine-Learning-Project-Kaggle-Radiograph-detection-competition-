@@ -51,7 +51,7 @@ class MyTrainer(DefaultTrainer):
     @classmethod
     def build_train_loader(cls, cfg, sampler=None):
         return build_detection_train_loader(
-            cfg, mapper=AlbumentationsMapper(cfg, True, use_more_aug=True, cutmix_prob = 0.5, mixup_prob=0.5), sampler=sampler
+            cfg, mapper=AlbumentationsMapper(cfg, True, use_more_aug=True, cutmix_prob = 0.0, mixup_prob=0.0), sampler=sampler
         )
 
     @classmethod
