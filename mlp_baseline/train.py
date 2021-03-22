@@ -49,7 +49,7 @@ class MyTrainer(DefaultTrainer):
     @classmethod
     def build_train_loader(cls, cfg, sampler=None):
         return build_detection_train_loader(
-            cfg, mapper=AlbumentationsMapper(cfg, True, use_more_aug=True, use_cutmix = 0.5, use_mixup=0.5), sampler=sampler
+            cfg, mapper=AlbumentationsMapper(cfg, True, use_more_aug=True, use_cutmix = 0.0, use_mixup=0.0), sampler=sampler
         )
 
     @classmethod
