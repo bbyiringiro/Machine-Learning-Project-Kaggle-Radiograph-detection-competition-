@@ -231,7 +231,7 @@ class AlbumentationsMapper:
             d = prev_anno[j]
             d["bbox"] = transformed["bboxes"][i]
             annos.append(d)
-        dataset_dict.pop("annotations", None)  # Remove unnecessary field.
+        
 
         # print(len(dataset_dict['annotations']))
         ########## Cutmix and mix up #####
@@ -246,6 +246,7 @@ class AlbumentationsMapper:
                 res_dict, image= mixup_image_and_boxes(dataset_dict, image, self.all_dicts)
                 dataset_dict = res_dict
                 ########
+        dataset_dict.pop("annotations", None)  # Remove unnecessary field.
 
         # # if not self.is_train:
         # #     # USER: Modify this if you want to keep them for some reason.
