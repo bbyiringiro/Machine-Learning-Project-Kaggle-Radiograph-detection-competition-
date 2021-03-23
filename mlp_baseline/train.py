@@ -31,6 +31,7 @@ from detectron2.config.config import CfgNode as CN
 
 import argparse
 import os
+import sys
 
 from detectron2.data import build_detection_test_loader, build_detection_train_loader
 from detectron2.engine import DefaultPredictor, DefaultTrainer, launch
@@ -84,21 +85,21 @@ class MyTrainer(DefaultTrainer):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('dest_results', action="store")
+    #parser = argparse.ArgumentParser()
+    #parser.add_argument('dest_results', action="store")
     
     setup_logger()
 
     flags_dict = {
         "debug": False,
-        "outdir": "results/v9", 
+        "outdir": "results/v9/"+sys.argv[1],
         "imgdir_name": "vin_vig_256x256",
         "split_mode": "valid20",
         "iter": 10000,
         "roi_batch_size_per_image": 512,
         "eval_period": 10000,
         "lr_scheduler_name": "WarmupCosineLR",
-        "checkpoint_interval":1000,
+        "checkpoint_interval":999,
         "base_lr": 0.00025,
         "num_workers": 4,
         "aug_kwargs": {
@@ -107,7 +108,8 @@ def main():
             "RandomBrightnessContrast": {"p": 0.3}
         }
     }
-    flags_dict["outdir"] = "results/v9/"+parser.dest_results
+    #flags_dict["outdir"] = "results/v9/"+sys.argv[0]
+    print("outdir: ",flags_dict["outdir"])
 
     # args = parse()
     print("torch", torch.__version__)
@@ -199,7 +201,7 @@ def main():
     cfg.OUTPUT_DIR = str(outdir)
     print(f"cfg.OUTPUT_DIR {original_output_dir} -> {cfg.OUTPUT_DIR}")
 
-    config_name = "COCO-Detection/retinanet_R_50_FPN_3x.yaml"
+    config_name = "COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml"
     cfg.merge_from_file(model_zoo.get_config_file(config_name))
     cfg.DATASETS.TRAIN = ("vinbigdata_train",)
     if split_mode == "all_train":
