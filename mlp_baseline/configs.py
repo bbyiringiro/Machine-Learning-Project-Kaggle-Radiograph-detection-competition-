@@ -15,7 +15,7 @@ class Flags:
     train_data_type: str = "original"  # original or wbf
     use_class14: bool = False
     # Training config
-    iter: int = 100000
+    iter: int = 10000
     ims_per_batch: int = 32  # images per batch, this corresponds to "total batch size"
     num_workers: int = 4
     lr_scheduler_name: str = "WarmupMultiStepLR"  # WarmupMultiStepLR (default) or WarmupCosineLR
