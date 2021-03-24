@@ -44,7 +44,7 @@ def all_dicts():
 
     # Read in the data CSV files
     train_df = pd.read_csv(inputdir / "train.csv")
-
+    return get_vinbigdata_dicts(imgdir, train_df, debug=True)
 
 
 def mixup_image_and_boxes(one_dict,img1, all_dataset_dicts):  
