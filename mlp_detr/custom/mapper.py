@@ -103,7 +103,7 @@ def load_cutmix_image_and_boxes(one_dict,img1, all_dataset_dicts,imsize=256):
             for j in range(len(img_d['annotations'])):
                 new_bbox = np.clip([img_d['annotations'][j]['bbox'][0]+padw, img_d['annotations'][j]['bbox'][1]+padh, img_d['annotations'][j]['bbox'][2]+padw, img_d['annotations'][j]['bbox'][3]+padh],0, 2 * s)
                 if new_bbox[0] == new_bbox[2] or new_bbox[1] == new_bbox[3]:
-                    del img_d['annotations'][j]
+                    img_d['annotations'].remove(j)
                     break
                 img_d['annotations'][j]['bbox'] = new_bbox
             img_dict_result['annotations'] +=img_d['annotations']
