@@ -184,15 +184,15 @@ from configs import thing_classes, Flags
 
 class AlbumentationsMapper:
     """Mapper which uses `albumentations` augmentations"""
-    def __init__(self, cfg, is_train: bool = True, use_more_aug=False, cutmix_prob = 0.0, mixup_prob=0.0):
-        aug_kwargs = cfg.aug_kwargs
-        aug_list = [
-        ]
-        if is_train:
-            aug_list.extend([getattr(A, name)(**kwargs) for name, kwargs in aug_kwargs.items()])
-        self.transform = A.Compose(
-            aug_list, bbox_params=A.BboxParams(format="pascal_voc", label_fields=["category_ids"])
-        )
+    def __init__(self, cfg, is_train: bool = True, use_more_aug=True, cutmix_prob = 1.0, mixup_prob=0.0):
+        # aug_kwargs = cfg.aug_kwargs
+        # aug_list = [
+        # ]
+        # if is_train:
+        #     aug_list.extend([getattr(A, name)(**kwargs) for name, kwargs in aug_kwargs.items()])
+        # self.transform = A.Compose(
+        #     aug_list, bbox_params=A.BboxParams(format="pascal_voc", label_fields=["category_ids"])
+        # )
         self.is_train = is_train
 
         mode = "training" if is_train else "inference"
@@ -229,22 +229,22 @@ class AlbumentationsMapper:
                 ########
         
 
-        prev_anno = dataset_dict["annotations"]
-        bboxes = np.array([obj["bbox"] for obj in prev_anno], dtype=np.float32)
-        # category_id = np.array([obj["category_id"] for obj in dataset_dict["annotations"]], dtype=np.int64)
-        category_id = np.arange(len(dataset_dict["annotations"]))
+        # prev_anno = dataset_dict["annotations"]
+        # bboxes = np.array([obj["bbox"] for obj in prev_anno], dtype=np.float32)
+        # # category_id = np.array([obj["category_id"] for obj in dataset_dict["annotations"]], dtype=np.int64)
+        # category_id = np.arange(len(dataset_dict["annotations"]))
 
        
 
 
 
-        transformed = self.transform(image=image, bboxes=bboxes, category_ids=category_id)
-        image = transformed["image"]
-        annos = []
-        for i, j in enumerate(transformed["category_ids"]):
-            d = prev_anno[j]
-            d["bbox"] = transformed["bboxes"][i]
-            annos.append(d)
+        # transformed = self.transform(image=image, bboxes=bboxes, category_ids=category_id)
+        # image = transformed["image"]
+        # annos = []
+        # for i, j in enumerate(transformed["category_ids"]):
+        #     d = prev_anno[j]
+        #     d["bbox"] = transformed["bboxes"][i]
+        #     annos.append(d)
         
 
        
@@ -257,9 +257,9 @@ class AlbumentationsMapper:
         # #     dataset_dict.pop("sem_seg_file_name", None)
         # #     return dataset_dict
 
-        dataset_dict["image"] = torch.as_tensor(image.transpose(2, 0, 1).astype("float32"))
-        instances = utils.annotations_to_instances(annos, image_shape)
-        dataset_dict["instances"] = utils.filter_empty_instances(instances)
+        dataset_dict["image"] = image#torch.as_tensor(image.transpose(2, 0, 1).astype("float32"))
+        # instances = utils.annotations_to_instances(annos, image_shape)
+        # dataset_dict["instances"] = utils.filter_empty_instances(instances)
 
         return dataset_dict
 
@@ -274,22 +274,25 @@ if __name__ == "__main__":
     
 
 
-    cols = 1
-    rows = 1
-    fig, ax = plt.subplots(rows, cols, figsize=(18, 18))
+    
 
 
-    for i in range(1):
+    for i in range(5):
         # ax =axes[0]
+        cols = 1
+        rows = 1
+        fig, ax = plt.subplots(rows, cols, figsize=(18, 18))
         
         dd = a(a.all_dicts[i])
         d, img = dd, dd['image']
         
         # print(d.keys())
-        # visualizer = Visualizer(img[:, :, ::-1], metadata=None, scale=0.5)
-        # out = visualizer.draw_dataset_dict(d)
-        # # cv2_imshow(out.get_image()[:, :, ::-1])
+        visualizer = Visualizer(img[:, :, ::-1], metadata=None, scale=0.5)
+        out = visualizer.draw_dataset_dict(d)
+        ax.imshow(out.get_image()[:, :, ::-1])
+
+        # cv2_imshow(out.get_image()[:, :, ::-1])
         # cv2.imwrite(str(outdir / f"vinbigdata{index}.jpg"), out.get_image()[:, :, ::-1])
-        plt.imshow(img[:, :, ::-1])
+        # plt.imshow(img[:, :, ::-1])
         # ax.set_title(f"{anom_ind}: image_id {anomaly_image_ids[index]}")
-    plt.show()
+        plt.show()
