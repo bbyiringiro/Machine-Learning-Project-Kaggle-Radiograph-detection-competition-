@@ -20,7 +20,7 @@ def all_dicts():
     
 
     flags_dict = {
-            "debug": True,
+            "debug": False,
             "imgdir_name": "vin_vig_256x256",
             "split_mode": "valid20",
            
@@ -253,8 +253,6 @@ class AlbumentationsMapper:
             annos.append(d)
         
 
-       
-
         dataset_dict.pop("annotations", None)  # Remove unnecessary field.
 
  
@@ -264,7 +262,6 @@ class AlbumentationsMapper:
         dataset_dict["instances"] = utils.filter_empty_instances(instances)
 
         return dataset_dict
-
 
 
 ###testing code ####

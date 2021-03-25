@@ -16,13 +16,11 @@ import dataclasses
 import cv2
 
 
-
 def all_dicts():
     
 
     flags_dict = {
             "debug": False,
-            "outdir": "results/v9", 
             "imgdir_name": "vin_vig_256x256",
             "split_mode": "valid20",
            
@@ -36,6 +34,7 @@ def all_dicts():
     os.makedirs(str(outdir), exist_ok=True)
 
     flags_dict = dataclasses.asdict(flags)
+    print(flags_dict)
     # save_yaml(outdir / "flags.yaml", flags_dict)
 
     # --- Read data ---
@@ -44,21 +43,26 @@ def all_dicts():
 
     # Read in the data CSV files
     train_df = pd.read_csv(inputdir / "train.csv")
+
+    
+
+
+
     return get_vinbigdata_dicts(imgdir, train_df, debug=flags.debug)
 
 
 def mixup_image_and_boxes(one_dict,img1, all_dataset_dicts):  
-    img1_d = one_dict
-    img2_d = all_dataset_dicts[np.random.randint(0, len(all_dataset_dicts) - 1)] 
-    # img1 = cv2.imread(one_dict["file_name"], cv2.IMREAD_COLOR).astype(np.float32)
-    # img2 = cv2.imread(img2_d["file_name"], cv2.IMREAD_COLOR).astype(np.float32)
-    img2 = utils.read_image(img2_d["file_name"], format="BGR")
-    mixed_img = ((img1.astype(np.float32)+img2.astype(np.float32))/2)
-    mixed_img_dict= img1_d
-    mixed_img_dict['annotations']= img1_d['annotations']+img2_d['annotations']
-    
-    return mixed_img_dict, mixed_img
-    # return one_dict, img1
+        img1_d = one_dict
+        img2_d = all_dataset_dicts[np.random.randint(0, len(all_dataset_dicts) - 1)] 
+        # img1 = cv2.imread(one_dict["file_name"], cv2.IMREAD_COLOR).astype(np.float32)
+        # img2 = cv2.imread(img2_d["file_name"], cv2.IMREAD_COLOR).astype(np.float32)
+        img2 = utils.read_image(img2_d["file_name"], format="BGR")
+        mixed_img = ((img1.astype(np.float32)+img2.astype(np.float32))/2)
+        mixed_img_dict= img1_d
+        mixed_img_dict['annotations']= img1_d['annotations']+img2_d['annotations']
+        
+        return mixed_img_dict, mixed_img
+        # return one_dict, img1
 
 
 def load_cutmix_image_and_boxes(one_dict,img1, all_dataset_dicts,imsize=256):
@@ -66,6 +70,8 @@ def load_cutmix_image_and_boxes(one_dict,img1, all_dataset_dicts,imsize=256):
         This implementation of cutmix author:  https://www.kaggle.com/nvnnghia 
         Refactoring and adaptation: https://www.kaggle.com/shonenkov
         """
+
+        
         w, h = imsize, imsize
         s = imsize // 2
         xc, yc = [int(np.random.uniform(imsize * 0.25, imsize * 0.75)) for _ in range(2)]  # center x, y
@@ -74,7 +80,7 @@ def load_cutmix_image_and_boxes(one_dict,img1, all_dataset_dicts,imsize=256):
         result_image = np.full((imsize, imsize, 3), 1, dtype=np.float32)
         img_dict_result = None
         for i, index in enumerate(indexes):
-            img_d = all_dataset_dicts[index]
+            img_d = copy.deepcopy(all_dataset_dicts[index])
             if not img_dict_result:
                 img_dict_result = img_d
                 image = img1
@@ -95,16 +101,18 @@ def load_cutmix_image_and_boxes(one_dict,img1, all_dataset_dicts,imsize=256):
             result_image[y1a:y2a, x1a:x2a] = image[y1b:y2b, x1b:x2b]
             padw = x1a - x1b
             padh = y1a - y1b
-
+            temp = []
             for j in range(len(img_d['annotations'])):
                 new_bbox = np.clip([img_d['annotations'][j]['bbox'][0]+padw, img_d['annotations'][j]['bbox'][1]+padh, img_d['annotations'][j]['bbox'][2]+padw, img_d['annotations'][j]['bbox'][3]+padh],0, 2 * s)
                 if new_bbox[0] == new_bbox[2] or new_bbox[1] == new_bbox[3]:
-                    try:
-                        img_d['annotations'].remove(img_d['annotations'][j])
-                    except:
-                        pass
-                    break
+                        temp.append(j)
+                        continue
                 img_d['annotations'][j]['bbox'] = new_bbox
+            
+            
+            temp.sort(reverse=True)
+            for j in temp:
+                del img_d['annotations'][j]
             img_dict_result['annotations'] +=img_d['annotations']
 
 
@@ -224,7 +232,6 @@ class AlbumentationsMapper:
             if np.random.random() < self.cutmix_prob:
                 res_dict, image = load_cutmix_image_and_boxes(dataset_dict, image, self.all_dicts)
                 dataset_dict = res_dict
-                dataset_dict["annotations"] = dataset_dict["annotations"]
                 ########
         
 
@@ -246,50 +253,12 @@ class AlbumentationsMapper:
             annos.append(d)
         
 
-       
+        dataset_dict.pop("annotations", None)  # Remove unnecessary field.
 
-        #dataset_dict.pop("annotations", None)  # Remove unnecessary field.
-
-        # # if not self.is_train:
-        # #     # USER: Modify this if you want to keep them for some reason.
-        # #     dataset_dict.pop("annotations", None)
-        # #     dataset_dict.pop("sem_seg_file_name", None)
-        # #     return dataset_dict
+ 
 
         dataset_dict["image"] = torch.as_tensor(image.transpose(2, 0, 1).astype("float32"))
         instances = utils.annotations_to_instances(annos, image_shape)
         dataset_dict["instances"] = utils.filter_empty_instances(instances)
 
         return dataset_dict
-
-
-
-###testing code ####
-if __name__ == "__main__":
-
-    a = AlbumentationsMapper(None, use_more_aug=True)
-    from detectron2.utils.visualizer import Visualizer
-    import matplotlib.pyplot as plt
-    
-
-
-    cols = 1
-    rows = 1
-    fig, ax = plt.subplots(rows, cols, figsize=(18, 18))
-
-
-    for i in range(1):
-        # ax =axes[0]
-        
-        dd = a(a.all_dicts[i])
-        d, img = dd, dd['image']
-        
-        # print(d.keys())
-        # visualizer = Visualizer(img[:, :, ::-1], metadata=None, scale=0.5)
-        # out = visualizer.draw_dataset_dict(d)
-        # # cv2_imshow(out.get_image()[:, :, ::-1])
-        # cv2.imwrite(str(outdir / f"vinbigdata{index}.jpg"), out.get_image()[:, :, ::-1])
-        plt.imshow(img[:, :, ::-1])
-        # ax.set_title(f"{anom_ind}: image_id {anomaly_image_ids[index]}")
-    plt.show()
-
