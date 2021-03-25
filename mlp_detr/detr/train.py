@@ -57,7 +57,7 @@ class MyTrainer(Trainer):
     def build_train_loader(cls, cfg, sampler=None):
 #         mapper = DetrDatasetMapper(cfg, True)
         
-        mapper=AlbumentationsMapper(cfg, True, use_more_aug=True, cutmix_prob = 0.5, mixup_prob=0.5)
+        mapper=AlbumentationsMapper(cfg, True, use_more_aug=True, cutmix_prob = 0.0, mixup_prob=0.0)
         return build_detection_train_loader(
             cfg, mapper= mapper , sampler=sampler
         )
@@ -97,14 +97,14 @@ def main():
 
     flags_dict = {
         "debug": False,
-        "outdir": "results/v9", 
+        "outdir": "results/detr_baseline", 
         "imgdir_name": "vin_vig_256x256",
         "split_mode": "valid20",
-        "iter": 80000,
+        "iter": 50000,
         "ims_per_batch":32,
         # "roi_batch_size_per_image": 512,
-        "checkpoint_interval":1000,
-        "eval_period": 1000,
+        "checkpoint_interval":2000,
+        "eval_period": 2000,
         "base_lr": 0.0001,
         "num_workers": 4,
         "aug_kwargs": {
