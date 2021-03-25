@@ -44,7 +44,7 @@ def all_dicts():
 
     # Read in the data CSV files
     train_df = pd.read_csv(inputdir / "train.csv")
-
+    return get_vinbigdata_dicts(imgdir, train_df, debug=flags.debug)
 
 
 def mixup_image_and_boxes(one_dict,img1, all_dataset_dicts):  
@@ -99,7 +99,10 @@ def load_cutmix_image_and_boxes(one_dict,img1, all_dataset_dicts,imsize=256):
             for j in range(len(img_d['annotations'])):
                 new_bbox = np.clip([img_d['annotations'][j]['bbox'][0]+padw, img_d['annotations'][j]['bbox'][1]+padh, img_d['annotations'][j]['bbox'][2]+padw, img_d['annotations'][j]['bbox'][3]+padh],0, 2 * s)
                 if new_bbox[0] == new_bbox[2] or new_bbox[1] == new_bbox[3]:
-                    del img_d['annotations'][j]
+                    try:
+                        img_d['annotations'].remove(img_d['annotations'][j])
+                    except:
+                        pass
                     break
                 img_d['annotations'][j]['bbox'] = new_bbox
             img_dict_result['annotations'] +=img_d['annotations']
