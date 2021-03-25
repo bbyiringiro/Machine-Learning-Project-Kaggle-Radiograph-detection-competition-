@@ -196,7 +196,7 @@ def main():
 
 
     
-    dataset_dicts = get_vinbigdata_dicts(imgdir, train_df, debug=True)
+    # dataset_dicts = get_vinbigdata_dicts(imgdir, train_df, debug=True)
 
     cfg = get_cfg()
 
