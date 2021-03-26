@@ -28,6 +28,7 @@ class Flags:
     is_new_config: bool = False
     cut_mix_prob: float = 0.0
     mix_up_prob: float = 0.0
+    config_name: str = 'null'
 
     def update(self, param_dict: Dict) -> "Flags":
         # Overwrite by `param_dict`
