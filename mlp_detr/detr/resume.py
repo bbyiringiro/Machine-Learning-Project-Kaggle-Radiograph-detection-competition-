@@ -262,7 +262,7 @@ def main(args):
     # cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = flags.roi_batch_size_per_image
 # NOTE: this config means the number of classes,
 # but a few popular unofficial tutorials incorrect uses num_classes+1 here.
-    os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
+    # os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
     # trainer = DefaultTrainer(cfg) 
     trainer = MyTrainer(cfg) 
     trainer.resume_or_load(resume=True)

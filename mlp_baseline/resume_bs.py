@@ -249,10 +249,10 @@ def main(args):
     # NOTE: this config means the number of classes,
     # but a few popular unofficial tutorials incorrect uses num_classes+1 here.
 
-    os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
+    # os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
 
     trainer = MyTrainer(cfg)
-    trainer.resume_or_load(resume=False)
+    trainer.resume_or_load(resume=True)
     return trainer.train()
 
 
