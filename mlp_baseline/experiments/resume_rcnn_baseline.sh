@@ -33,6 +33,6 @@ export DATASET_DIR=${TMP}/datasets/
 # Activate the relevant virtual environment:
 
 source /home/${STUDENT_ID}/miniconda3/bin/activate mlp
-python resume_bs.py rcnn_baseline results/test/flags.yaml
+python resume_bs.py results/rcnn_baseline/flags.yaml
 
 
