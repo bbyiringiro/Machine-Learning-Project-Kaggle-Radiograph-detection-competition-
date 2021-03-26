@@ -1,12 +1,15 @@
 import argparse
 import dataclasses
+import json
 import os
-
+import pickle
+import random
 import sys
 from dataclasses import dataclass
 from distutils.util import strtobool
 from pathlib import Path
 
+import cv2
 import detectron2
 import numpy as np
 import pandas as pd
@@ -14,18 +17,21 @@ import torch
 from detectron2 import model_zoo
 from detectron2.config import get_cfg
 from detectron2.data import DatasetCatalog, MetadataCatalog
-from detectron2.engine import DefaultPredictor, DefaultTrainer, launch
-from detectron2.evaluation import COCOEvaluator
+from detectron2.evaluation import COCOEvaluator, PascalVOCDetectionEvaluator
 from detectron2.structures import BoxMode
 from detectron2.utils.logger import setup_logger
 from detectron2.utils.visualizer import Visualizer
 from tqdm import tqdm
 
+from detectron2.config.config import CfgNode as CN
 
 
 
+
+
+import argparse
+import os
 import sys
-sys.path.append('..')
 
 from detectron2.data import build_detection_test_loader, build_detection_train_loader
 from detectron2.engine import DefaultPredictor, DefaultTrainer, launch
@@ -37,28 +43,20 @@ from dataset.process_data  import get_vinbigdata_dicts
 from custom.evaluator import VinbigdataEvaluator
 from custom.loss_hook import LossEvalHook
 from custom.mapper import MyMapper, AlbumentationsMapper
-# from detectron2.engine import DefaultPredictor, DefaultTrainer, launch
+from detectron2.engine import DefaultPredictor, DefaultTrainer, launch
 
-from detectron2.config.config import CfgNode as CN
-
-from d2.train_net import Trainer
-from d2.detr import DetrDatasetMapper, add_detr_config
-from d2.detr import add_detr_config
-
-
-# from detectron2.evaluation import COCOEvaluator, PascalVOCDetectionEvaluator
 
 parser = argparse.ArgumentParser(
         description='Train')
 
-parser.add_argument("resume_path")
-parser.add_argument('--cutmix', default= -1, type=float)
-parser.add_argument('--mixup', default= -1, type=float)
+parser.add_argument("exp_name")
+parser.add_argument('--cutmix', default=0.0, type=float)
+parser.add_argument('--mixup', default=0.0, type=float)
+parser.add_argument('--lr', default=0.00025, type=float)
+parser.add_argument('--network', default='null', type=str)
 
-class MyTrainer(Trainer):
-    # def __init__(self, cfg, _mydata_dicts):
-    #     super().__init__(cfg)
-    #     self.mydata_dicts = _mydata_dicts
+
+class MyTrainer(DefaultTrainer):
     @classmethod
     def build_train_loader(cls, cfg, sampler=None):
 #         mapper = DetrDatasetMapper(cfg, True)
@@ -66,7 +64,6 @@ class MyTrainer(Trainer):
         return build_detection_train_loader(
             cfg, mapper= mapper , sampler=sampler
         )
-    
 
     @classmethod
     def build_test_loader(cls, cfg, dataset_name):
@@ -98,21 +95,53 @@ class MyTrainer(Trainer):
 
 
 def main(args):
+    #parser = argparse.ArgumentParser()
+    #parser.add_argument('dest_results', action="store")
+    
     setup_logger()
+
     
-    resume_path = args.resume_path
-    assert(os.path.exists(resume_path))
-    assert('yaml' in resume_path)
-    flags_dict = load_yaml(resume_path)
-    print(flags_dict)
-    
+    if 'rcnn' in args.network:
+        config_name = "COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml"
+    elif 'retina' in args.network:
+        config_name = "COCO-Detection/retinanet_R_50_FPN_3x.yaml"
+    else:
+        
+        assert args.network !='null', "you need to specify the network type"
+        print("only rcnn and retina allowed")
+        sys.exit(-1)
+
+
+
+    assert (args.cutmix <=1 and args.mixup <=1)
+    flags_dict = {
+        "is_new_config": True,
+        "cut_mix_prob":args.cutmix,
+        "mix_up_prob":args.mixup,
+        "config_name":config_name,
+        "debug": False,
+        "outdir": "results/"+args.exp_name, 
+        "imgdir_name": "vin_vig_256x256",
+        "split_mode": "valid20",
+        "iter": 10000,
+        "ims_per_batch":32,
+        # "roi_batch_size_per_image": 512,
+        "checkpoint_interval":2000,
+        "eval_period": 1000,
+        "base_lr": args.lr,
+        "num_workers": 4,
+        "aug_kwargs": {
+            "HorizontalFlip": {"p": 0.5},
+            "ShiftScaleRotate": {"scale_limit": 0.15, "rotate_limit": 10, "p": 0.5},
+            "RandomBrightnessContrast": {"p": 0.3}
+        }
+    }
+    #flags_dict["outdir"] = "results/v9/"+sys.argv[0]
+    print("outdir: ",flags_dict["outdir"])
 
     # args = parse()
     print("torch", torch.__version__)
     flags = Flags().update(flags_dict)
-
-    assert flags.config_name !='null', "Not config type edit the .yaml and try again"
-
 
     print("flags", flags)
     debug = flags.debug
@@ -120,7 +149,7 @@ def main(args):
     os.makedirs(str(outdir), exist_ok=True)
 
     flags_dict = dataclasses.asdict(flags)
-    # save_yaml(outdir / "flags.yaml", flags_dict)
+    save_yaml(outdir / "flags.yaml", flags_dict)
 
     # --- Read data ---
     inputdir = Path("dataset/data")
@@ -128,12 +157,8 @@ def main(args):
 
     # Read in the data CSV files
     train_df = pd.read_csv(inputdir / "train.csv")
-    # print(train_df)
     # train = train_df  # alias
     # sample_submission = pd.read_csv(datadir / 'sample_submission.csv')
-
-
-
 
 
 
@@ -194,36 +219,14 @@ def main(args):
         raise ValueError(f"[ERROR] Unexpected value split_mode={split_mode}")
 
 
-    
+
+
 
     cfg = get_cfg()
 
     cfg.aug_kwargs = CN(flags.aug_kwargs)  # pass aug_kwargs to cfg
-
-
-    if not flags.is_new_config:
-        assert(args.cutmix >=0 or args.mixup >=0)
-        print(args.cutmix,  args.mixup , args.cutmix >=0 or args.mixup >=0)
-
-        if args.cutmix >=0:
-            c_prob = args.cutmix
-        else:
-            c_prob = 0
-        if args.mixup >=0:
-            m_prob = args.mixup
-        else:
-            m_prob = 0
-
-        
-    else: ## for new version of config read them directly
-        c_prob = flags.cut_mix_prob
-        m_prob = flags.mix_up_prob
-
-
-
-    
-    cfg.cutmix = c_prob
-    cfg.mixup = m_prob
+    cfg.cutmix = flags.cut_mix_prob
+    cfg.mixup = flags.mix_up_prob
 
     original_output_dir = cfg.OUTPUT_DIR
     cfg.OUTPUT_DIR = str(outdir)
@@ -260,3 +263,4 @@ def main(args):
 if __name__ == "__main__":
     args = parser.parse_args()
     main(args)
+    
