@@ -1,12 +1,15 @@
 import argparse
 import dataclasses
+import json
 import os
-
+import pickle
+import random
 import sys
 from dataclasses import dataclass
 from distutils.util import strtobool
 from pathlib import Path
 
+import cv2
 import detectron2
 import numpy as np
 import pandas as pd
@@ -14,18 +17,21 @@ import torch
 from detectron2 import model_zoo
 from detectron2.config import get_cfg
 from detectron2.data import DatasetCatalog, MetadataCatalog
-from detectron2.engine import DefaultPredictor, DefaultTrainer, launch
-from detectron2.evaluation import COCOEvaluator
+from detectron2.evaluation import COCOEvaluator, PascalVOCDetectionEvaluator
 from detectron2.structures import BoxMode
 from detectron2.utils.logger import setup_logger
 from detectron2.utils.visualizer import Visualizer
 from tqdm import tqdm
 
+from detectron2.config.config import CfgNode as CN
 
 
 
+
+
+import argparse
+import os
 import sys
-sys.path.append('..')
 
 from detectron2.data import build_detection_test_loader, build_detection_train_loader
 from detectron2.engine import DefaultPredictor, DefaultTrainer, launch
@@ -37,14 +43,7 @@ from dataset.process_data  import get_vinbigdata_dicts
 from custom.evaluator import VinbigdataEvaluator
 from custom.loss_hook import LossEvalHook
 from custom.mapper import MyMapper, AlbumentationsMapper
-# from detectron2.engine import DefaultPredictor, DefaultTrainer, launch
-
-from detectron2.config.config import CfgNode as CN
-
-from d2.train_net import Trainer
-from d2.detr import DetrDatasetMapper, add_detr_config
-from d2.detr import add_detr_config
-
+from detectron2.engine import DefaultPredictor, DefaultTrainer, launch
 
 # from detectron2.evaluation import COCOEvaluator, PascalVOCDetectionEvaluator
 
