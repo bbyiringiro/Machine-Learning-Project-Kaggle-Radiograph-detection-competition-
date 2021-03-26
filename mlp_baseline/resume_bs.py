@@ -54,7 +54,7 @@ parser.add_argument("resume_path")
 parser.add_argument('--cutmix', default= -1, type=float)
 parser.add_argument('--mixup', default= -1, type=float)
 
-class MyTrainer(Trainer):
+class MyTrainer(DefaultTrainer):
     # def __init__(self, cfg, _mydata_dicts):
     #     super().__init__(cfg)
     #     self.mydata_dicts = _mydata_dicts
