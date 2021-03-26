@@ -217,10 +217,6 @@ def main(args):
         c_prob = flags.cut_mix_prob
         m_prob = flags.mix_up_prob
 
-    print("testing ", c_prob, m_prob)
-    sys.exit()
-
-
 
     cfg.cutmix = c_prob
     cfg.mixup = m_prob

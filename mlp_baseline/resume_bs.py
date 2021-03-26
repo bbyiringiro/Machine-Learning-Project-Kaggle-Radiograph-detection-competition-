@@ -48,6 +48,12 @@ from d2.detr import add_detr_config
 
 # from detectron2.evaluation import COCOEvaluator, PascalVOCDetectionEvaluator
 
+parser = argparse.ArgumentParser(
+        description='Train')
+
+parser.add_argument("resume_path")
+parser.add_argument('--cutmix', default= -1, type=float)
+parser.add_argument('--mixup', default= -1, type=float)
 
 class MyTrainer(Trainer):
     # def __init__(self, cfg, _mydata_dicts):
@@ -56,8 +62,7 @@ class MyTrainer(Trainer):
     @classmethod
     def build_train_loader(cls, cfg, sampler=None):
 #         mapper = DetrDatasetMapper(cfg, True)
-        
-        mapper=AlbumentationsMapper(cfg, True, use_more_aug=True, cutmix_prob = 0.5, mixup_prob=0.5)
+        mapper=AlbumentationsMapper(cfg, True, use_more_aug=(cfg.cutmix > 0 or cfg.mixup > 0), cutmix_prob = cfg.cutmix, mixup_prob=cfg.mixup)
         return build_detection_train_loader(
             cfg, mapper= mapper , sampler=sampler
         )
@@ -92,9 +97,12 @@ class MyTrainer(Trainer):
 
 
 
-def main():
+def main(args):
     setup_logger()
-    resume_path = ''
+    
+    resume_path = args.resume_path
+    assert(os.path.exists(resume_path))
+    assert('yaml' in resume_path)
     flags_dict = load_yaml(resume_path)
     print(flags_dict)
     
@@ -120,6 +128,9 @@ def main():
     # print(train_df)
     # train = train_df  # alias
     # sample_submission = pd.read_csv(datadir / 'sample_submission.csv')
+
+
+
 
 
 
@@ -181,12 +192,34 @@ def main():
 
 
     
-    dataset_dicts = get_vinbigdata_dicts(imgdir, train_df, debug=True)
 
     cfg = get_cfg()
 
     add_detr_config(cfg)
     cfg.aug_kwargs = CN(flags.aug_kwargs)
+
+
+    if not flags.is_new_config:
+        assert(args.cutmix >=0 or args.mixup >=0)
+        print(args.cutmix,  args.mixup , args.cutmix >=0 or args.mixup >=0)
+
+        if args.cutmix >=0:
+            c_prob = args.cutmix
+        else:
+            c_prob = 0
+        if args.mixup >=0:
+            m_prob = args.mixup
+        else:
+            m_prob = 0
+
+        
+    else: ## for new version of config read them directly
+        c_prob = flags.cut_mix_prob
+        m_prob = flags.mix_up_prob
+
+
+    cfg.cutmix = c_prob
+    cfg.mixup = m_prob
     cfg.merge_from_file("d2/configs/detr_256_6_6_torchvision.yaml")
 
 
@@ -237,4 +270,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    args = parser.parse_args()
+    main(args)

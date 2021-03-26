@@ -25,6 +25,10 @@ class Flags:
     checkpoint_interval: int = 1000
     aug_kwargs: Dict = field(default_factory=lambda: {})
 
+    is_new_config: bool = False
+    cut_mix_prob: float = 0.0
+    mix_up_prob: float = 0.0
+
     def update(self, param_dict: Dict) -> "Flags":
         # Overwrite by `param_dict`
         for key, value in param_dict.items():
