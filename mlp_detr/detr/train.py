@@ -68,7 +68,9 @@ class MyTrainer(Trainer):
     def build_train_loader(cls, cfg, sampler=None):
 #         mapper = DetrDatasetMapper(cfg, True)
         print(cfg.mixup, cfg.cutmix)
-        sys.exit()
+        print(cfg.cutmix > 0 or cfg.mixup > 0)
+        import time
+        time.sleep(20)
         mapper=AlbumentationsMapper(cfg, True, use_more_aug=(cfg.cutmix > 0 or cfg.mixup > 0), cutmix_prob = cfg.cutmix, mixup_prob=cfg.mixup)
         return build_detection_train_loader(
             cfg, mapper= mapper , sampler=sampler
@@ -120,7 +122,7 @@ def main(args):
         # "roi_batch_size_per_image": 512,
         "checkpoint_interval":2000,
         "eval_period": 2000,
-        "base_lr": 0.0001,
+        "base_lr": args.lr,
         "num_workers": 4,
         "aug_kwargs": {
             "HorizontalFlip": {"p": 0.5},

@@ -52,6 +52,8 @@ parser = argparse.ArgumentParser(
         description='Train')
 
 parser.add_argument("resume_path")
+parser.add_argument('--cutmix', default= -1, type=float)
+parser.add_argument('--mixup', default= -1, type=float)
 
 class MyTrainer(Trainer):
     # def __init__(self, cfg, _mydata_dicts):
@@ -130,6 +132,9 @@ def main(args):
 
 
 
+
+
+
     train_data_type = flags.train_data_type
     if flags.use_class14:
         thing_classes.append("No finding")
@@ -192,8 +197,32 @@ def main(args):
 
     add_detr_config(cfg)
     cfg.aug_kwargs = CN(flags.aug_kwargs)
-    cfg.cutmix = flags.cut_mix_prob
-    cfg.mixup = flags.mix_up_prob
+
+
+    if 'cut_mix_prob' not in flags_dict.keys():
+        assert(args.cutmix >=0 or args.mixup >=0, 'for older versions you need to specify probabily explicitly')
+
+        if args.cutmix >=0:
+            c_prob = args.cutmix
+        else:
+            c_prob = 0
+        if args.mixup >=0:
+            m_prob = args.mixup
+        else:
+            m_prob = 0
+
+        
+    else: ## for new version of config read them directly
+        c_prob = flags.cut_mix_prob
+        m_prob = flags.mix_up_prob
+
+    print("testing ", c_prob, m_prob)
+    sys.exit()
+
+
+
+    cfg.cutmix = c_prob
+    cfg.mixup = m_prob
     cfg.merge_from_file("d2/configs/detr_256_6_6_torchvision.yaml")
 
 
