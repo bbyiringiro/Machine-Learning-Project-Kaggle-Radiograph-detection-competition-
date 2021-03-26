@@ -120,7 +120,7 @@ def main(args):
         "mix_up_prob":args.mixup,
         "config_name":config_name,
         "debug": False,
-        "outdir": "results/"+args.exp_name, 
+        "outdir": "results/"+args.exp_name+'_'+args.network, 
         "imgdir_name": "vin_vig_256x256",
         "split_mode": "valid20",
         "iter": 10000,
