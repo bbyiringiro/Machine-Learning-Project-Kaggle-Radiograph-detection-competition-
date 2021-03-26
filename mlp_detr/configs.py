@@ -20,10 +20,13 @@ class Flags:
     num_workers: int = 4
     lr_scheduler_name: str = "WarmupMultiStepLR"  # WarmupMultiStepLR (default) or WarmupCosineLR
     base_lr: float = 0.00025
+    cut_mix_prob: float = 0.0
+    mix_up_prob: float = 0.0
     roi_batch_size_per_image: int = 512
     eval_period: int = 100
     checkpoint_interval: int = 1000
     aug_kwargs: Dict = field(default_factory=lambda: {})
+    
 
     def update(self, param_dict: Dict) -> "Flags":
         # Overwrite by `param_dict`
