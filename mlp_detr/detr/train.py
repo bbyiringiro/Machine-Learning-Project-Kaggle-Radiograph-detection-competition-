@@ -46,6 +46,17 @@ from d2.detr import DetrDatasetMapper, add_detr_config
 from d2.detr import add_detr_config
 
 
+parser = argparse.ArgumentParser(
+        description='Train')
+
+parser.add_argument("exp_name")
+parser.add_argument('--cutmix', default=0.0, type=float)
+parser.add_argument('--mixup', default=0.0, type=float)
+parser.add_argument('--lr', default=0.0001, type=float)
+
+   
+
+
 # from detectron2.evaluation import COCOEvaluator, PascalVOCDetectionEvaluator
 
 
@@ -56,8 +67,9 @@ class MyTrainer(Trainer):
     @classmethod
     def build_train_loader(cls, cfg, sampler=None):
 #         mapper = DetrDatasetMapper(cfg, True)
-        
-        mapper=AlbumentationsMapper(cfg, True, use_more_aug=True, cutmix_prob = 0.0, mixup_prob=0.0)
+        print(cfg.mixup, cfg.cutmix)
+        sys.exit()
+        mapper=AlbumentationsMapper(cfg, True, use_more_aug=(cfg.cutmix > 0 or cfg.mixup > 0), cutmix_prob = cfg.cutmix, mixup_prob=cfg.mixup)
         return build_detection_train_loader(
             cfg, mapper= mapper , sampler=sampler
         )
@@ -92,12 +104,15 @@ class MyTrainer(Trainer):
 
 
 
-def main():
+def main(args):
     setup_logger()
 
+    assert (args.cutmix <=1 and args.mixup <=1)
     flags_dict = {
+        "cut_mix_prob":args.cutmix,
+        "mix_up_prob":args.mixup,
         "debug": False,
-        "outdir": "results/detr_baseline", 
+        "outdir": "results/"+args.exp_name, 
         "imgdir_name": "vin_vig_256x256",
         "split_mode": "valid20",
         "iter": 50000,
@@ -132,9 +147,9 @@ def main():
 
     # Read in the data CSV files
     train_df = pd.read_csv(inputdir / "train.csv")
-    # print(train_df)
-    # train = train_df  # alias
-    # sample_submission = pd.read_csv(datadir / 'sample_submission.csv')
+
+
+    
 
 
 
@@ -202,7 +217,16 @@ def main():
 
     add_detr_config(cfg)
     cfg.aug_kwargs = CN(flags.aug_kwargs)
+    cfg.cutmix = flags.cut_mix_prob
+    cfg.mixup = flags.mix_up_prob
+
+    
+
+
+
     cfg.merge_from_file("d2/configs/detr_256_6_6_torchvision.yaml")
+
+    
 
 
 
@@ -218,9 +242,6 @@ def main():
     cfg.OUTPUT_DIR = str(outdir)
 
     cfg.MODEL.WEIGHTS = "converted_model.pth"
-    
-
-
 
     cfg.MODEL.DETR.NUM_CLASSES = len(thing_classes)
     cfg.MODEL.DETR.NUM_OBJECT_QUERIES = 100
@@ -252,4 +273,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    args = parser.parse_args()
+    print(args)
+    main(args)
