@@ -53,6 +53,7 @@ parser.add_argument("exp_name")
 parser.add_argument('--cutmix', default=0.0, type=float)
 parser.add_argument('--mixup', default=0.0, type=float)
 parser.add_argument('--lr', default=0.0001, type=float)
+parser.add_argument('--custom_img_path', default=None, type=str)
 
    
 
@@ -104,6 +105,7 @@ class MyTrainer(Trainer):
 
 def main(args):
     setup_logger()
+    use_cashe= True
 
     assert (args.cutmix <=1 and args.mixup <=1)
     flags_dict = {
@@ -142,7 +144,19 @@ def main(args):
 
     # --- Read data ---
     inputdir = Path("../dataset/data")
-    imgdir = inputdir / flags.imgdir_name
+
+
+    if args.custom_img_path:
+        assert(os.path.exists(args.custom_img_path))
+        imgdir = Path(args.custom_img_path)
+        use_cashe= False
+    else:
+        imgdir = inputdir / flags.imgdir_name
+
+    print(imgdir)
+
+        
+    
 
     # Read in the data CSV files
     train_df = pd.read_csv(inputdir / "train.csv")
@@ -165,7 +179,7 @@ def main(args):
         DatasetCatalog.register(
             "vinbigdata_train",
             lambda: get_vinbigdata_dicts(
-                imgdir, train_df, train_data_type, debug=debug, use_class14=flags.use_class14
+                imgdir, train_df, train_data_type, debug=debug, use_class14=flags.use_class14,use_cache = use_cashe
             ),
         )
         MetadataCatalog.get("vinbigdata_train").set(thing_classes=thing_classes)
@@ -173,7 +187,7 @@ def main(args):
         # To get number of data...
         n_dataset = len(
             get_vinbigdata_dicts(
-                imgdir, train_df, train_data_type, debug=debug, use_class14=flags.use_class14
+                imgdir, train_df, train_data_type, debug=debug, use_class14=flags.use_class14,use_cache = use_cashe
             )
         )
         n_train = int(n_dataset * 0.8)
@@ -216,10 +230,9 @@ def main(args):
 
     add_detr_config(cfg)
     cfg.aug_kwargs = CN(flags.aug_kwargs)
+    
     cfg.cutmix = flags.cut_mix_prob
     cfg.mixup = flags.mix_up_prob
-
-    
 
 
 
@@ -273,5 +286,4 @@ def main(args):
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    print(args)
     main(args)
