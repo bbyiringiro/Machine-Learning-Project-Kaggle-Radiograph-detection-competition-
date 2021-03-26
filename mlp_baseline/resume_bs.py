@@ -228,7 +228,7 @@ def main(args):
     cfg.OUTPUT_DIR = str(outdir)
     print(f"cfg.OUTPUT_DIR {original_output_dir} -> {cfg.OUTPUT_DIR}")
 
-    cfg.merge_from_file(model_zoo.get_config_file(config_name))
+    cfg.merge_from_file(model_zoo.get_config_file(flags.config_name))
     cfg.DATASETS.TRAIN = ("vinbigdata_train",)
     if split_mode == "all_train":
         cfg.DATASETS.TEST = ()
@@ -238,7 +238,7 @@ def main(args):
 
     cfg.DATALOADER.NUM_WORKERS = flags.num_workers
     # Let training initialize from model zoo
-    cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(config_name)
+    cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(flags.config_name)
     cfg.SOLVER.IMS_PER_BATCH = flags.ims_per_batch
     cfg.SOLVER.LR_SCHEDULER_NAME = flags.lr_scheduler_name
     cfg.SOLVER.BASE_LR = flags.base_lr  # pick a good LR
