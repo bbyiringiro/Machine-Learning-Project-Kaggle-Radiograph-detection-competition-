@@ -199,8 +199,9 @@ def main(args):
     cfg.aug_kwargs = CN(flags.aug_kwargs)
 
 
-    if 'cut_mix_prob' not in flags_dict.keys():
-        assert(args.cutmix >=0 or args.mixup >=0, 'for older versions you need to specify probabily explicitly')
+    if not flags.is_new_config:
+        assert(args.cutmix >=0 or args.mixup >=0)
+        print(args.cutmix,  args.mixup , args.cutmix >=0 or args.mixup >=0)
 
         if args.cutmix >=0:
             c_prob = args.cutmix

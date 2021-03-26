@@ -67,10 +67,6 @@ class MyTrainer(Trainer):
     @classmethod
     def build_train_loader(cls, cfg, sampler=None):
 #         mapper = DetrDatasetMapper(cfg, True)
-        print(cfg.mixup, cfg.cutmix)
-        print(cfg.cutmix > 0 or cfg.mixup > 0)
-        import time
-        time.sleep(20)
         mapper=AlbumentationsMapper(cfg, True, use_more_aug=(cfg.cutmix > 0 or cfg.mixup > 0), cutmix_prob = cfg.cutmix, mixup_prob=cfg.mixup)
         return build_detection_train_loader(
             cfg, mapper= mapper , sampler=sampler
@@ -111,6 +107,7 @@ def main(args):
 
     assert (args.cutmix <=1 and args.mixup <=1)
     flags_dict = {
+        "is_new_config": True,
         "cut_mix_prob":args.cutmix,
         "mix_up_prob":args.mixup,
         "debug": False,
