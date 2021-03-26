@@ -1,7 +1,7 @@
 #!/bin/sh
 #SBATCH -N 1	  # nodes requested
 #SBATCH -n 1	  # tasks requested
-#SBATCH --partition=Teach-LongJobs
+#SBATCH --partition=Teach-Standard
 #SBATCH --gres=gpu:3
 #SBATCH --mem=12000  # memory in Mb
 #SBATCH --time=3-08:00:00
