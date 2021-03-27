@@ -121,12 +121,12 @@ def main(args):
         "config_name":config_name,
         "debug": False,
         "outdir": "results/"+args.exp_name, 
-        "imgdir_name": "vin_vig_256x256",
+        "imgdir_name": "vin-512",
         "split_mode": "valid20",
-        "iter": 10000,
-        "ims_per_batch":32,
+        "iter": 100000,
+        "ims_per_batch":16,
         # "roi_batch_size_per_image": 512,
-        "checkpoint_interval":2000,
+        "checkpoint_interval":5000,
         "eval_period": 1000,
         "base_lr": args.lr,
         "num_workers": 4,
@@ -153,7 +153,8 @@ def main(args):
 
     # --- Read data ---
     inputdir = Path("dataset/data")
-    imgdir = inputdir / flags.imgdir_name
+    data_dir = os.environ['DATASET_DIR']
+    imgdir = data_dir / flags.imgdir_name
 
     # Read in the data CSV files
     train_df = pd.read_csv(inputdir / "train.csv")
