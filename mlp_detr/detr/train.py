@@ -114,7 +114,7 @@ def main(args):
         "mix_up_prob":args.mixup,
         "debug": False,
         "outdir": "results/"+args.exp_name, 
-        "imgdir_name": "vin_vig_256x256",
+        "imgdir_name": "vin-512",
         "split_mode": "valid20",
         "iter": 50000,
         "ims_per_batch":32,
@@ -151,7 +151,8 @@ def main(args):
         imgdir = Path(args.custom_img_path)
         use_cashe= False
     else:
-        imgdir = inputdir / flags.imgdir_name
+        data_dir = os.environ['DATASET_DIR']
+        imgdir = data_dir / flags.imgdir_name
 
     print(imgdir)
 
