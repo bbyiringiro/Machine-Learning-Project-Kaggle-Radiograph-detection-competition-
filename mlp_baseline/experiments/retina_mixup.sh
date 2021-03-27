@@ -34,4 +34,4 @@ rsync -au --progress ../../vin-512 ${DATASET_DIR}
 # Activate the relevant virtual environment:
 
 source /home/${STUDENT_ID}/miniconda3/bin/activate mlp2
-python train2.py new_retina_mixup --mixup 0.3 --cutmix 0.0 
+python train2.py new_retina_mixup --network retina --mixup 0.3 --cutmix 0.0 
