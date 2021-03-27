@@ -156,7 +156,7 @@ def main(args):
 
     # --- Read data ---
     inputdir = Path("dataset/data")
-    data_dir = os.environ['DATASET_DIR']
+    data_dir = Path(os.environ['DATASET_DIR'])
     imgdir = data_dir / flags.imgdir_name
 
     # Read in the data CSV files

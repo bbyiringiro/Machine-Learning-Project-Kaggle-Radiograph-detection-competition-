@@ -151,7 +151,7 @@ def main(args):
         imgdir = Path(args.custom_img_path)
         use_cashe= False
     else:
-        data_dir = os.environ['DATASET_DIR']
+        data_dir = Path(os.environ['DATASET_DIR'])
         imgdir = data_dir / flags.imgdir_name
 
     print(imgdir)
