@@ -99,17 +99,20 @@ def main(args):
     #parser.add_argument('dest_results', action="store")
     
     setup_logger()
-
     
     if 'rcnn' in args.network:
         config_name = "COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml"
+        weight_path = "model_final_280758.pkl"
     elif 'retina' in args.network:
+        weight_path = 'model_final_5bd44e.pkl'
         config_name = "COCO-Detection/retinanet_R_50_FPN_3x.yaml"
     else:
-        
+
         assert args.network !='null', "you need to specify the network type"
         print("only rcnn and retina allowed")
         sys.exit(-1)
+
+    
 
 
 
@@ -121,12 +124,12 @@ def main(args):
         "config_name":config_name,
         "debug": False,
         "outdir": "results/"+args.exp_name, 
-        "imgdir_name": "vin-512",
+        "imgdir_name": "vin_vig_256x256",
         "split_mode": "valid20",
-        "iter": 100000,
-        "ims_per_batch":16,
+        "iter": 10000,
+        "ims_per_batch":32,
         # "roi_batch_size_per_image": 512,
-        "checkpoint_interval":5000,
+        "checkpoint_interval":2000,
         "eval_period": 1000,
         "base_lr": args.lr,
         "num_workers": 4,
@@ -153,8 +156,7 @@ def main(args):
 
     # --- Read data ---
     inputdir = Path("dataset/data")
-    data_dir = os.environ['DATASET_DIR']
-    imgdir = data_dir / flags.imgdir_name
+    imgdir = inputdir / flags.imgdir_name
 
     # Read in the data CSV files
     train_df = pd.read_csv(inputdir / "train.csv")
@@ -243,7 +245,7 @@ def main(args):
 
     cfg.DATALOADER.NUM_WORKERS = flags.num_workers
     # Let training initialize from model zoo
-    cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(config_name)
+    cfg.MODEL.WEIGHTS = weight_path #model_zoo.get_checkpoint_url(config_name)
     cfg.SOLVER.IMS_PER_BATCH = flags.ims_per_batch
     cfg.SOLVER.LR_SCHEDULER_NAME = flags.lr_scheduler_name
     cfg.SOLVER.BASE_LR = flags.base_lr  # pick a good LR
